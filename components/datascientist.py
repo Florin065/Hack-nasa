@@ -76,8 +76,6 @@ def show_datascientist_view():
         "<h2 style='color:white; text-align:center;'>Exoplanet Check</h2>",
         unsafe_allow_html=True,
     )
-
-    # st.info("Here you can test whether the entered parameters correspond to a potential exoplanet, as evaluated by our AI/ML model.")
     st.markdown(
         """
         <div style="
@@ -102,7 +100,6 @@ def show_datascientist_view():
         # Două coloane egale
         cols = st.columns(2)
 
-        # Definim câmpurile numeric (label, kwargs) EXACT ca în codul tău
         fields = [
             ("Orbital period (days)",         dict(min_value=0.0, step=0.1, format="%.4f", key="P_days")),
             ("Transit epoch (e.g., BJD_TDB)", dict(step=0.1, format="%.5f", key="t0")),
@@ -118,14 +115,12 @@ def show_datascientist_view():
             ("Declination (deg, -90–+90)",    dict(min_value=-90.0, max_value=90.0, step=0.1, format="%.4f", key="Dec_deg")),
         ]
 
-        # Randează alternativ stânga/dreapta pentru distribuție egală
         for i, (label, kwargs) in enumerate(fields):
             with cols[i % 2]:
                 st.number_input(label, **kwargs)
 
         submitted = st.form_submit_button("Check parameters")
 
-    # Dacă nu a fost apăsat Submit, afișăm mesaj + buton Back
     if not submitted:
         st.divider()
         if st.button("← Back to role selection"):
@@ -133,7 +128,6 @@ def show_datascientist_view():
             st.rerun()
         return
 
-    # --- Preluare valori din state (cheile definite în number_input) ---
     P_days       = st.session_state.get("P_days", 0.0)
     t0           = st.session_state.get("t0", 0.0)
     dur_hours    = st.session_state.get("dur_hours", 0.0)
@@ -179,64 +173,64 @@ def show_datascientist_view():
             ok = False
             messages.append(("error", f"{name} must be > 0."))
 
-    if not (0.1 <= Rp_Re <= 25):
-        messages.append(("warning", "Planetary radius is outside a typical range (~0.1–25 R⊕)."))
-    if not (3.5 <= logg <= 5.0):
-        messages.append(("warning", "Stellar log g is unusual for main-sequence/giant stars (3.5–5.0 typical)."))
-    if not (0.1 <= Rstar_Rsun <= 50):
-        messages.append(("warning", "Stellar radius outside broad typical range (0.1–50 R☉)."))
-    if not (0 <= RA_deg <= 360):
-        ok = False
-        messages.append(("error", "RA must be in [0, 360] degrees."))
-    if not (-90 <= Dec_deg <= 90):
-        ok = False
-        messages.append(("error", "Dec must be in [-90, +90] degrees."))
-
-    if ok:
-        if math.isfinite(P_days_kepler):
-            kepler_err = _rel_err(P_days, P_days_kepler)
-            if kepler_err < 0.1:
-                messages.append(("success", f"Kepler consistency ✅ Period matches Teq/Teff/logg/R★ (err ~ {kepler_err*100:.1f}%)."))
-            elif kepler_err < 0.25:
-                messages.append(("warning", f"Kepler consistency ⚠️ Roughly consistent (err ~ {kepler_err*100:.1f}%). Recheck assumptions/units."))
-            else:
-                messages.append(("error", f"Kepler consistency ❌ Large mismatch (err ~ {kepler_err*100:.1f}%)."))
-                ok = False
-        else:
-            messages.append(("error", "Unable to compute Kepler period—check Teq, Teff, log g, and R★."))
-            ok = False
-
-        if math.isfinite(depth_frac_expected) and math.isfinite(depth_frac_input) and depth_frac_input > 0:
-            depth_err = _rel_err(depth_frac_input, depth_frac_expected)
-            if depth_err < 0.2:
-                messages.append(("success", f"Transit depth ✅ Consistent with radii (err ~ {depth_err*100:.1f}%)."))
-            elif depth_err < 0.5:
-                messages.append(("warning", f"Transit depth ⚠️ Somewhat off (err ~ {depth_err*100:.1f}%)."))
-            else:
-                messages.append(("error", f"Transit depth ❌ Inconsistent with radii (err ~ {depth_err*100:.1f}%)."))
-        else:
-            messages.append(("warning", "Could not assess transit depth consistency (check inputs)."))
-
-        if math.isfinite(S_pred) and S_earth >= 0:
-            flux_err = _rel_err(S_earth, S_pred) if S_pred > 0 else float("inf")
-            if flux_err < 0.2:
-                messages.append(("success", f"Irradiance S/S⊕ ✅ Consistent (err ~ {flux_err*100:.1f}%)."))
-            elif flux_err < 0.5:
-                messages.append(("warning", f"Irradiance S/S⊕ ⚠️ Somewhat off (err ~ {flux_err*100:.1f}%)."))
-            else:
-                messages.append(("error", f"Irradiance S/S⊕ ❌ Inconsistent (err ~ {flux_err*100:.1f}%)."))
-        else:
-            messages.append(("warning", "Could not evaluate irradiance consistency."))
-
-        if math.isfinite(dur_pred_hours):
-            dur_err = _rel_err(dur_hours, dur_pred_hours)
-            if dur_err < 0.3:
-                messages.append(("success", f"Transit duration ✅ Reasonable for central transit (err ~ {dur_err*100:.1f}%)."))
-            else:
-                messages.append(("warning", f"Transit duration ⚠️ Off for central-transit assumption (err ~ {dur_err*100:.1f}%). "
-                                            "High impact parameter or eccentricity could explain this."))
-        else:
-            messages.append(("warning", "Could not estimate transit duration."))
+    # if not (0.1 <= Rp_Re <= 25):
+    #     messages.append(("warning", "Planetary radius is outside a typical range (~0.1–25 R⊕)."))
+    # if not (3.5 <= logg <= 5.0):
+    #     messages.append(("warning", "Stellar log g is unusual for main-sequence/giant stars (3.5–5.0 typical)."))
+    # if not (0.1 <= Rstar_Rsun <= 50):
+    #     messages.append(("warning", "Stellar radius outside broad typical range (0.1–50 R☉)."))
+    # if not (0 <= RA_deg <= 360):
+    #     ok = False
+    #     messages.append(("error", "RA must be in [0, 360] degrees."))
+    # if not (-90 <= Dec_deg <= 90):
+    #     ok = False
+    #     messages.append(("error", "Dec must be in [-90, +90] degrees."))
+    #
+    # if ok:
+    #     if math.isfinite(P_days_kepler):
+    #         kepler_err = _rel_err(P_days, P_days_kepler)
+    #         if kepler_err < 0.1:
+    #             messages.append(("success", f"Kepler consistency ✅ Period matches Teq/Teff/logg/R★ (err ~ {kepler_err*100:.1f}%)."))
+    #         elif kepler_err < 0.25:
+    #             messages.append(("warning", f"Kepler consistency ⚠️ Roughly consistent (err ~ {kepler_err*100:.1f}%). Recheck assumptions/units."))
+    #         else:
+    #             messages.append(("error", f"Kepler consistency ❌ Large mismatch (err ~ {kepler_err*100:.1f}%)."))
+    #             ok = False
+    #     else:
+    #         messages.append(("error", "Unable to compute Kepler period—check Teq, Teff, log g, and R★."))
+    #         ok = False
+    #
+    #     if math.isfinite(depth_frac_expected) and math.isfinite(depth_frac_input) and depth_frac_input > 0:
+    #         depth_err = _rel_err(depth_frac_input, depth_frac_expected)
+    #         if depth_err < 0.2:
+    #             messages.append(("success", f"Transit depth ✅ Consistent with radii (err ~ {depth_err*100:.1f}%)."))
+    #         elif depth_err < 0.5:
+    #             messages.append(("warning", f"Transit depth ⚠️ Somewhat off (err ~ {depth_err*100:.1f}%)."))
+    #         else:
+    #             messages.append(("error", f"Transit depth ❌ Inconsistent with radii (err ~ {depth_err*100:.1f}%)."))
+    #     else:
+    #         messages.append(("warning", "Could not assess transit depth consistency (check inputs)."))
+    #
+    #     if math.isfinite(S_pred) and S_earth >= 0:
+    #         flux_err = _rel_err(S_earth, S_pred) if S_pred > 0 else float("inf")
+    #         if flux_err < 0.2:
+    #             messages.append(("success", f"Irradiance S/S⊕ ✅ Consistent (err ~ {flux_err*100:.1f}%)."))
+    #         elif flux_err < 0.5:
+    #             messages.append(("warning", f"Irradiance S/S⊕ ⚠️ Somewhat off (err ~ {flux_err*100:.1f}%)."))
+    #         else:
+    #             messages.append(("error", f"Irradiance S/S⊕ ❌ Inconsistent (err ~ {flux_err*100:.1f}%)."))
+    #     else:
+    #         messages.append(("warning", "Could not evaluate irradiance consistency."))
+    #
+    #     if math.isfinite(dur_pred_hours):
+    #         dur_err = _rel_err(dur_hours, dur_pred_hours)
+    #         if dur_err < 0.3:
+    #             messages.append(("success", f"Transit duration ✅ Reasonable for central transit (err ~ {dur_err*100:.1f}%)."))
+    #         else:
+    #             messages.append(("warning", f"Transit duration ⚠️ Off for central-transit assumption (err ~ {dur_err*100:.1f}%). "
+    #                                         "High impact parameter or eccentricity could explain this."))
+    #     else:
+    #         messages.append(("warning", "Could not estimate transit duration."))
 
     # --- Results ---
     st.divider()
