@@ -5,7 +5,7 @@ from components.explorer import show_explorer_view
 from components.datascientist import show_datascientist_view
 
 st.set_page_config(
-    page_title="Exoplanet Explorer",
+    page_title="Exoplanet Detector",
     page_icon="🔭",
     layout="wide"
 )
@@ -15,13 +15,9 @@ st.markdown(
     """
     <style>
     /* Hide multipage navigation and sidebar elements */
-    /* Hide the sidebar navigation list of pages */
     [data-testid="stSidebarNav"] { display: none !important; }
-    /* Hide any header page navigation bar if present */
     nav[aria-label="Page navigation"] { display: none !important; }
-    /* Hide the sidebar entirely (including expander button area) */
     section[data-testid="stSidebar"] { display: none !important; }
-    /* Hide sidebar collapsed control / toggle (various Streamlit versions) */
     [data-testid="collapsedControl"],
     [data-testid="stSidebarCollapsedControl"],
     [data-testid="sidebar-collapsed-control"],
@@ -127,31 +123,98 @@ if st.session_state.transitioning:
 elif st.session_state.role is None:
     set_page_bg("assets/backgrounds/home.jpeg")
 
-    st.markdown("<h1 style='text-align: center; margin-top: 10%; color: white;'>Alege-ți Călătoria</h1>",
-                unsafe_allow_html=True)
+    st.markdown(
+        "<h1 style='text-align:center; margin-top:10%; color:white; font-size:clamp(48px, 8vw, 120px);'>Exodetect</h1>",
+        unsafe_allow_html=True,
+    )
+
+    # ⬇️ Descriptive text block under the title
+    st.markdown(
+        """
+        <div style="
+          max-width: 900px;
+          margin: 12px auto 28px auto;
+          text-align: center;
+          color: #f5fff7;
+          background: rgba(0, 0, 0, 0.28);      /* subtle translucent bg (≈28% opaque) */
+          border: 1px solid rgba(255,255,255,0.10);
+          border-radius: 14px;
+          padding: 14px 20px;
+          box-shadow: 0 8px 22px rgba(0,0,0,0.25);
+          backdrop-filter: blur(4px);           /* soft glass effect */
+          -webkit-backdrop-filter: blur(4px);
+        ">
+            <p style="margin:0.2rem 0 0.5rem 0; font-size: 1.05rem; line-height:1.5; text-shadow: 0 1px 2px rgba(0,0,0,0.45);">
+                Welcome to the fascinating world of exoplanet discovery!<br>
+                If you’re eager to explore the mysteries of distant worlds and understand their importance, you’re an <b>Explorer</b>.<br>
+                If you’re a researcher looking to test whether your <i>measurements</i> could reveal a new planet beyond our Solar System, you’re a <b>Data Scientist</b>.
+            </p>
+            <p style="margin:0; opacity:0.9; text-shadow: 0 1px 2px rgba(0,0,0,0.35);">
+                This platform is built for both <b>curious beginners</b> taking their first steps into exoplanet science
+                and <b>experienced researchers</b> seeking to analyze and classify new data.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     st.markdown(
         """
         <style>
+        /* Base button */
         .stButton > button {
             background: rgba(255,255,255,0.92) !important;
             color: #0b1736 !important;
-            border: 1px solid rgba(0,0,0,0.2) !important;
+            border: 1px solid rgba(6, 78, 59, 0.35) !important; /* dark green border */
             border-radius: 10px !important;
             padding: 0.6rem 1rem !important;
             font-weight: 600 !important;
-            box-shadow: 0 6px 16px rgba(0,0,0,0.35) !important;
+            box-shadow:
+                0 6px 16px rgba(6, 78, 59, 0.55),
+                0 2px 6px rgba(6, 78, 59, 0.35) !important;      /* dark green shadow */
             backdrop-filter: blur(2px);
+            transition: transform .12s ease,
+                        box-shadow .12s ease,
+                        border-color .12s ease,
+                        background-color .12s ease !important;
         }
+
+        /* Hover: green tint + green border/shadow */
         .stButton > button:hover {
-            background: #e7f1ff !important;
-            border-color: rgba(0, 123, 255, 0.6) !important;
-            box-shadow: 0 8px 20px rgba(7, 86, 170, 0.35) !important;
+            background-color: #e9fce9 !important;                 /* light green */
+            border-color: rgba(34, 197, 94, 0.6) !important;      /* emerald */
+            box-shadow:
+                0 8px 22px rgba(6, 78, 59, 0.65),
+                0 4px 10px rgba(6, 78, 59, 0.45) !important;      /* darker green shadow */
+            transform: translateY(-1px);
         }
-        .stButton > button:disabled, .stButton > button[disabled] {
+
+        /* Active (mouse down): slightly darker green */
+        .stButton > button:active {
+            background-color: #d8f8d8 !important;                 /* darker light green */
+            border-color: rgba(22, 163, 74, 0.8) !important;      /* deeper emerald */
+            box-shadow:
+                0 5px 12px rgba(6, 78, 59, 0.50),
+                0 2px 6px rgba(6, 78, 59, 0.35) !important;
+            transform: translateY(0) scale(0.99);
+        }
+
+        /* Keyboard focus: green focus ring (no blue) */
+        .stButton > button:focus,
+        .stButton > button:focus-visible {
+            outline: none !important;
+            border-color: rgba(34, 197, 94, 0.85) !important;
+            box-shadow:
+                0 0 0 3px rgba(34, 197, 94, 0.28),
+                0 10px 24px rgba(6, 78, 59, 0.30) !important;
+        }
+
+        /* Disabled */
+        .stButton > button:disabled,
+        .stButton > button[disabled] {
             background: rgba(255,255,255,0.6) !important;
             color: rgba(11,23,54,0.6) !important;
-            border-color: rgba(0,0,0,0.15) !important;
+            border-color: rgba(6, 78, 59, 0.25) !important;
             box-shadow: none !important;
         }
         </style>
