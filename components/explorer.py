@@ -15,7 +15,7 @@ def show_interactive_planets():
             "description": "One of the first 'Super-Earths' found within its star's habitable zone. It's about 2.4 times the size of Earth and orbits a Sun-like star, making it a famous candidate in the search for potentially habitable worlds."
         },
         "Kepler-452b": {
-            "image": "assets/explorer/planets/Kepler-452b.jpeg",
+            "image": "assets/explorer/planets/Kepler-452b.png",
             "description": "Often called 'Earth's Cousin,' this exoplanet orbits a star very similar to our Sun. It is located in the habitable zone, but its larger size means it could be a rocky 'Super-Earth' or a small gas planet."
         },
         "WASP-96b": {
@@ -32,7 +32,7 @@ def show_interactive_planets():
 
     for planet_name, data in PLANET_DATA.items():
         with cols[col_index]:
-            with st.container(border=True):
+            with st.container(border=False):
                 st.image(data["image"])
 
                 # Button to open the dialog

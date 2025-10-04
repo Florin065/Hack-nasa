@@ -10,6 +10,7 @@ M_sun_g = 1.98847e33           # g
 sigma_sb_cgs = 5.670374419e-5  # erg cm^-2 s^-1 K^-4 (not directly needed)
 T_sun_K = 5772.0
 
+# --- Helpers ---
 def _stellar_mass_from_logg_R(logg_cgs: float, R_solar: float) -> float:
     """Return stellar mass in solar masses from log g (cgs) and radius in solar radii."""
     g = 10 ** logg_cgs              # cm s^-2
@@ -71,6 +72,17 @@ def _rel_err(x, y):
         return float("inf")
     return abs(x - y) / abs(y)
 
+def _go_home():
+    """Navigate back to the main role-selection page."""
+    try:
+        # Adjust if your main entry file has a different name.
+        st.switch_page("app.py")
+    except Exception:
+        # Fallback for single-file routing
+        st.session_state.update(role=None)
+        st.rerun()
+
+# --- UI ---
 def show_datascientist_view():
     st.markdown(
         "<h2 style='color:white; text-align:center;'>Exoplanet Check</h2>",
@@ -97,22 +109,22 @@ def show_datascientist_view():
     )
 
     with st.form("exo_form", clear_on_submit=False):
-        # Două coloane egale
+        # Two equal columns
         cols = st.columns(2)
 
         fields = [
-            ("Orbital period (days)",         dict(min_value=0.0, step=0.1, format="%.4f", key="P_days")),
-            ("Transit epoch (e.g., BJD_TDB)", dict(step=0.1, format="%.5f", key="t0")),
-            ("Transit duration (hours)",      dict(min_value=0.0, step=0.1, format="%.3f", key="dur_hours")),
-            ("Transit depth (ppm)",           dict(min_value=0.0, step=10.0, format="%.3f", key="depth_val")),
-            ("Planetary radius (Earth radii)",dict(min_value=0.0, step=0.1, format="%.3f", key="Rp_Re")),
-            ("Equilibrium temperature (K)",   dict(min_value=0.0, step=10.0, format="%.1f", key="Teq_K")),
-            ("Earth flux",                    dict(min_value=0.0, step=0.1, format="%.3f", key="S_earth")),
-            ("Stellar effective temperature (K)", dict(min_value=0.0, step=10.0, format="%.1f", key="Teff_K")),
-            ("Stellar surface gravity log g (cgs)", dict(min_value=0.0, step=0.01, format="%.3f", key="logg")),
-            ("Stellar radius (Solar radii)",  dict(min_value=0.0, step=0.01, format="%.4f", key="Rstar_Rsun")),
-            ("Right ascension (deg, 0–360)",  dict(min_value=0.0, max_value=360.0, step=0.1, format="%.4f", key="RA_deg")),
-            ("Declination (deg, -90–+90)",    dict(min_value=-90.0, max_value=90.0, step=0.1, format="%.4f", key="Dec_deg")),
+            ("Orbital period (days)",              dict(min_value=0.0, step=0.1,  format="%.4f", key="P_days")),
+            ("Transit epoch (e.g., BJD_TDB)",      dict(step=0.1,                       format="%.5f", key="t0")),
+            ("Transit duration (hours)",           dict(min_value=0.0, step=0.1,  format="%.3f", key="dur_hours")),
+            ("Transit depth (ppm)",                dict(min_value=0.0, step=10.0, format="%.3f", key="depth_val")),
+            ("Planetary radius (Earth radii)",     dict(min_value=0.0, step=0.1,  format="%.3f", key="Rp_Re")),
+            ("Equilibrium temperature (K)",        dict(min_value=0.0, step=10.0, format="%.1f", key="Teq_K")),
+            ("Earth flux",                          dict(min_value=0.0, step=0.1,  format="%.3f", key="S_earth")),
+            ("Stellar effective temperature (K)",  dict(min_value=0.0, step=10.0, format="%.1f", key="Teff_K")),
+            ("Stellar surface gravity log g (cgs)",dict(min_value=0.0, step=0.01, format="%.3f", key="logg")),
+            ("Stellar radius (Solar radii)",       dict(min_value=0.0, step=0.01, format="%.4f", key="Rstar_Rsun")),
+            ("Right ascension (deg, 0–360)",       dict(min_value=0.0, max_value=360.0, step=0.1, format="%.4f", key="RA_deg")),
+            ("Declination (deg, -90–+90)",         dict(min_value=-90.0, max_value=90.0, step=0.1, format="%.4f", key="Dec_deg")),
         ]
 
         for i, (label, kwargs) in enumerate(fields):
@@ -121,13 +133,14 @@ def show_datascientist_view():
 
         submitted = st.form_submit_button("Check parameters")
 
+    # Before submit: just show back button
     if not submitted:
         st.divider()
         if st.button("← Back to role selection"):
-            st.session_state.update(role=None)
-            st.rerun()
+            _go_home()
         return
 
+    # --- Read values ---
     P_days       = st.session_state.get("P_days", 0.0)
     t0           = st.session_state.get("t0", 0.0)
     dur_hours    = st.session_state.get("dur_hours", 0.0)
@@ -142,21 +155,17 @@ def show_datascientist_view():
     Dec_deg      = st.session_state.get("Dec_deg", 0.0)
 
     # --- Convert/derive ---
-
     depth_frac_input = depth_val / 1e6 if depth_val > 0 else 0.0
-
-    # Derived a (AU) from Teq, Teff, Rstar (A=0, full redistribution)
-    a_AU = _a_from_Teq_Teff_Rstar(Teq_K, Teff_K, Rstar_Rsun)
-    Mstar_Msun = _stellar_mass_from_logg_R(logg, Rstar_Rsun)
+    a_AU          = _a_from_Teq_Teff_Rstar(Teq_K, Teff_K, Rstar_Rsun)
+    Mstar_Msun    = _stellar_mass_from_logg_R(logg, Rstar_Rsun)
     P_days_kepler = _period_from_kepler(a_AU, Mstar_Msun)
     depth_frac_expected = _depth_from_radii(Rp_Re, Rstar_Rsun)
-    S_pred = _flux_rel_earth(Teff_K, Rstar_Rsun, a_AU)
-    dur_pred_hours = _central_transit_duration_hours(P_days, a_AU, Rstar_Rsun)
+    S_pred        = _flux_rel_earth(Teff_K, Rstar_Rsun, a_AU)
+    dur_pred_hours= _central_transit_duration_hours(P_days, a_AU, Rstar_Rsun)
 
-    # --- Checks ---
+    # --- Minimal checks (only basic > 0) ---
     messages = []
     ok = True
-
     basics = [
         ("Orbital period", P_days > 0),
         ("Transit duration", dur_hours > 0),
@@ -173,69 +182,10 @@ def show_datascientist_view():
             ok = False
             messages.append(("error", f"{name} must be > 0."))
 
-    # if not (0.1 <= Rp_Re <= 25):
-    #     messages.append(("warning", "Planetary radius is outside a typical range (~0.1–25 R⊕)."))
-    # if not (3.5 <= logg <= 5.0):
-    #     messages.append(("warning", "Stellar log g is unusual for main-sequence/giant stars (3.5–5.0 typical)."))
-    # if not (0.1 <= Rstar_Rsun <= 50):
-    #     messages.append(("warning", "Stellar radius outside broad typical range (0.1–50 R☉)."))
-    # if not (0 <= RA_deg <= 360):
-    #     ok = False
-    #     messages.append(("error", "RA must be in [0, 360] degrees."))
-    # if not (-90 <= Dec_deg <= 90):
-    #     ok = False
-    #     messages.append(("error", "Dec must be in [-90, +90] degrees."))
-    #
-    # if ok:
-    #     if math.isfinite(P_days_kepler):
-    #         kepler_err = _rel_err(P_days, P_days_kepler)
-    #         if kepler_err < 0.1:
-    #             messages.append(("success", f"Kepler consistency ✅ Period matches Teq/Teff/logg/R★ (err ~ {kepler_err*100:.1f}%)."))
-    #         elif kepler_err < 0.25:
-    #             messages.append(("warning", f"Kepler consistency ⚠️ Roughly consistent (err ~ {kepler_err*100:.1f}%). Recheck assumptions/units."))
-    #         else:
-    #             messages.append(("error", f"Kepler consistency ❌ Large mismatch (err ~ {kepler_err*100:.1f}%)."))
-    #             ok = False
-    #     else:
-    #         messages.append(("error", "Unable to compute Kepler period—check Teq, Teff, log g, and R★."))
-    #         ok = False
-    #
-    #     if math.isfinite(depth_frac_expected) and math.isfinite(depth_frac_input) and depth_frac_input > 0:
-    #         depth_err = _rel_err(depth_frac_input, depth_frac_expected)
-    #         if depth_err < 0.2:
-    #             messages.append(("success", f"Transit depth ✅ Consistent with radii (err ~ {depth_err*100:.1f}%)."))
-    #         elif depth_err < 0.5:
-    #             messages.append(("warning", f"Transit depth ⚠️ Somewhat off (err ~ {depth_err*100:.1f}%)."))
-    #         else:
-    #             messages.append(("error", f"Transit depth ❌ Inconsistent with radii (err ~ {depth_err*100:.1f}%)."))
-    #     else:
-    #         messages.append(("warning", "Could not assess transit depth consistency (check inputs)."))
-    #
-    #     if math.isfinite(S_pred) and S_earth >= 0:
-    #         flux_err = _rel_err(S_earth, S_pred) if S_pred > 0 else float("inf")
-    #         if flux_err < 0.2:
-    #             messages.append(("success", f"Irradiance S/S⊕ ✅ Consistent (err ~ {flux_err*100:.1f}%)."))
-    #         elif flux_err < 0.5:
-    #             messages.append(("warning", f"Irradiance S/S⊕ ⚠️ Somewhat off (err ~ {flux_err*100:.1f}%)."))
-    #         else:
-    #             messages.append(("error", f"Irradiance S/S⊕ ❌ Inconsistent (err ~ {flux_err*100:.1f}%)."))
-    #     else:
-    #         messages.append(("warning", "Could not evaluate irradiance consistency."))
-    #
-    #     if math.isfinite(dur_pred_hours):
-    #         dur_err = _rel_err(dur_hours, dur_pred_hours)
-    #         if dur_err < 0.3:
-    #             messages.append(("success", f"Transit duration ✅ Reasonable for central transit (err ~ {dur_err*100:.1f}%)."))
-    #         else:
-    #             messages.append(("warning", f"Transit duration ⚠️ Off for central-transit assumption (err ~ {dur_err*100:.1f}%). "
-    #                                         "High impact parameter or eccentricity could explain this."))
-    #     else:
-    #         messages.append(("warning", "Could not estimate transit duration."))
-
     # --- Results ---
     st.divider()
     if ok:
-        st.success("These parameters are **self-consistent** under standard assumptions (see notes below).")
+        st.success("These parameters are **self-consistent** under standard assumptions (basic checks only).")
     else:
         st.error("Parameters show **inconsistencies**. See diagnostics below.")
 
@@ -247,8 +197,6 @@ def show_datascientist_view():
         else:
             st.error(msg)
 
-
     st.divider()
     if st.button("← Back to role selection"):
-        st.session_state.update(role=None)
-        st.rerun()
+        _go_home()
