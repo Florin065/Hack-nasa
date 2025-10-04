@@ -1,49 +1,177 @@
+# explorer_view.py  (or place inside components/explorer.py)
 import streamlit as st
+import base64
+import streamlit.components.v1 as components
 
 
+# ---------- Helpers ----------
+def _img_b64(path: str) -> str:
+    with open(path, "rb") as f:
+        return base64.b64encode(f.read()).decode("utf-8")
+
+
+def _anchored_modal_card(name: str, img_path: str, body_html: str, key: str, height: int = 700):
+    """
+    Renders a card where clicking the image toggles a 'modal-like' panel
+    that appears directly *below* the image (anchored to the card).
+    The panel has its own scroll area to avoid text being cut off.
+    """
+    b64 = _img_b64(img_path)
+
+    html_block = f"""
+    <div style="max-width: 720px; margin: 0 auto;">
+      <style>
+        .card-{key} {{
+          position: relative;  /* anchor for the panel */
+          
+          padding: 10px;
+          
+         
+          
+          
+          -webkit-backdrop-filter: blur(4px);
+        }}
+        .card-{key} img {{
+          width: 100%;
+          display: block;
+          border-radius: 12px;
+          cursor: pointer;
+          border: none;
+          box-shadow: none;
+        }}
+        .hint-{key} {{
+          margin-top: 8px; text-align: center; color: #cfeede; font-size: 0.9rem;
+        }}
+
+        #panel-{key} {{
+          display: none;                  /* toggled by JS */
+          margin-top: 10px;               /* BELOW the image */
+          border-radius: 12px;
+        
+          /* translucent + blur (glassmorphism) */
+          background: rgba(14, 17, 23, 0.30);           /* lower alpha = more see-through */
+          backdrop-filter: blur(12px) saturate(120%);
+          -webkit-backdrop-filter: blur(12px) saturate(120%); /* Safari */
+        
+          color: #f5fff7;
+          border: 1px solid rgba(255, 255, 255, 0.18);
+          box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+          padding: 14px 16px 16px 16px;
+        }}
+
+        /* Inner scrolling area so long text isn't cut off */
+        #panel-content-{key} {{
+          max-height: 50vh;          /* adjust if you want taller/shorter */
+          overflow: auto;
+          line-height: 1.6;
+        }}
+
+        .panel-close-{key} {{
+          position: sticky;
+          top: 0;
+          display: inline-block;
+          margin-left: auto;
+          float: right;
+          cursor: pointer;
+          color: #cfeede;
+          font-size: 22px;
+          padding: 2px 6px;
+          border-radius: 8px;
+        }}
+        .panel-close-{key}:hover {{
+          background: rgba(255,255,255,0.08);
+        }}
+
+       
+      </style>
+
+      <div class="card-{key}">
+        <img id="img-{key}" src="data:image/png;base64,{b64}" alt="{name}">
+        
+
+        <!-- Anchored panel below the image -->
+        <div id="panel-{key}">
+          <span class="panel-close-{key}" id="close-{key}" title="Close">✕</span>
+          <div class="panel-arrow-{key}"></div>
+          <div id="panel-content-{key}">
+            {body_html}
+          </div>
+        </div>
+      </div>
+
+      <script>
+        (function() {{
+          const img   = document.getElementById("img-{key}");
+          const panel = document.getElementById("panel-{key}");
+          const close = document.getElementById("close-{key}");
+
+          function togglePanel() {{
+            if (!panel) return;
+            panel.style.display = (panel.style.display === "none" || !panel.style.display) ? "block" : "none";
+          }}
+
+          if (img)   img.addEventListener("click", togglePanel);
+          if (close) close.addEventListener("click", () => panel.style.display = "none");
+        }})();
+      </script>
+    </div>
+    """
+    # height controls the iframe that hosts this card; make it tall enough for the panel
+    components.html(html_block, height=height, scrolling=False)
+
+
+# ---------- Gallery ----------
 def show_interactive_planets():
     """
     Displays an interactive gallery of exoplanets.
-    Clicking a button opens a dialog (pop-up) with details.
+    Clicking the image opens a modal-like pop-up panel *below* the picture.
     """
 
-    # --- Data for the Exoplanets ---
-    # Make sure the image paths match your folder structure (e.g., "assets/planets/Kepler-22b.jpeg")
     PLANET_DATA = {
         "Kepler-22b": {
             "image": "assets/explorer/planets/Kepler-22b.png",
-            "description": "One of the first 'Super-Earths' found within its star's habitable zone. It's about 2.4 times the size of Earth and orbits a Sun-like star, making it a famous candidate in the search for potentially habitable worlds."
+            "body": """
+                <b>Kepler-22 b </b><br>
+                <b>Discovered 2011:</b> A possible ocean world orbiting in the habitable zone—the region around a star
+                where the temperature is right for liquid water, a requirement for life on Earth.
+            """
         },
         "Kepler-452b": {
             "image": "assets/explorer/planets/Kepler-452b.png",
-            "description": "Often called 'Earth's Cousin,' this exoplanet orbits a star very similar to our Sun. It is located in the habitable zone, but its larger size means it could be a rocky 'Super-Earth' or a small gas planet."
+            "body": """
+                <b>Kepler-452 b</b><br>
+                <b>Discovered 2015:</b> An "Earth-cousin" that orbits a star like our sun in the habitable zone,
+                where liquid water could exist.
+            """
         },
         "WASP-96b": {
             "image": "assets/explorer/planets/WASP-96b.png",
-            "description": "A hot, puffy gas giant famous for being one of the first targets of the James Webb Space Telescope. Webb's observations provided a detailed atmospheric analysis, revealing the unambiguous signature of water."
+            "body": """
+                <b>WASP-96 b</b><br>
+                <b>Discovered 2014:</b> An international team found that WASP-96 b is a world with a sodium rich atmosphere.
+                The planet, located nearly 1,150 light-years from Earth, orbits its star every 3.4 days. It has about half
+                the mass of Jupiter, and its discovery was announced in 2014.
+            """
         }
     }
 
     st.header("Featured Exoplanets", divider="rainbow")
 
-    # --- Create the Gallery ---
     cols = st.columns(3)
-    col_index = 0
-
-    for planet_name, data in PLANET_DATA.items():
-        with cols[col_index]:
-            with st.container(border=False):
-                st.image(data["image"])
-
-                # Button to open the dialog
-                if st.button(f"Details about {planet_name}", key=planet_name, use_container_width=True):
-                    with st.dialog(f"Information: {planet_name}"):
-                        st.image(data["image"])
-                        st.write(data["description"])
-
-        col_index = (col_index + 1) % 3
+    idx = 0
+    for name, data in PLANET_DATA.items():
+        with cols[idx]:
+            _anchored_modal_card(
+                name=name,
+                img_path=data["image"],
+                body_html=data["body"],
+                key=name.replace(" ", "_"),
+                height=720,  # increase if you want more space for the open panel
+            )
+        idx = (idx + 1) % 3
 
 
+# ---------- Explorer page scaffold ----------
 def show_explorer_view():
     """
     Shows a title and a button. When clicked, it reveals the
@@ -55,7 +183,7 @@ def show_explorer_view():
     def reveal_details():
         st.session_state.show_details = True
 
-    # --- CSS Styling ---
+    # CSS Styling
     st.markdown(
         """
         <style>
@@ -125,44 +253,38 @@ def show_explorer_view():
         with st.expander("What Are Exoplanets? 🪐"):
             st.write(
                 """
-                An **exoplanet** is any planet that orbits a star outside our solar system. The first confirmed discovery occurred in the early 1990s. Since then, telescopes like Kepler and TESS have revolutionized astronomy by revealing thousands of distant worlds. These findings have shown that planets are, in fact, incredibly common throughout the galaxy.
+                An **exoplanet** is any planet that orbits a star outside our solar system. The first confirmed discovery
+                occurred in the early 1990s. Since then, telescopes like Kepler and TESS have revealed thousands of distant
+                worlds. These findings show that planets are incredibly common across the galaxy.
                 """
             )
 
         with st.expander("How Do We Find Worlds Light-Years Away? 🔭"):
             st.write(
-                """
-                Detecting exoplanets is challenging because they are extremely small and dim compared to their host stars. Astronomers use ingenious, indirect methods to find them:
-                """
+                "Detecting exoplanets is challenging because they are far dimmer than their host stars. Two key methods:"
             )
             st.markdown(
                 """
-                - **The Transit Method:** This is the most successful technique. When an exoplanet passes in front of its star (a "transit"), it blocks a tiny fraction of the star's light.
-
-                - **The Radial Velocity Method:** A planet's gravity tugs on its star, causing it to "wobble" slightly. Astronomers can detect this wobble by analyzing the star's light.
+                - **Transit Method:** When a planet passes in front of its star, it blocks a tiny fraction of starlight.  
+                - **Radial Velocity:** A planet’s gravity makes its star wobble; we detect the wobble in the star’s spectrum.
                 """
             )
 
         with st.expander("So, Why Are Exoplanets Important? 🤔"):
-            st.write(
-                """
-                The study of exoplanets is more than just cataloging new worlds. Their importance is profound and touches on three essential pillars of our existence:
-                """
-            )
+            st.write("Three core reasons this field matters:")
             st.markdown(
                 """
-                1.  **The Search for Life:** For the first time in history, exoplanets give us a realistic chance to answer the question, "Are we alone in the Universe?"
-
-                2.  **Understanding Our Own Origin:** By studying thousands of other solar systems, we learn about the rules that govern planet formation. This helps us understand the cosmic context of our own Earth.
-
-                3.  **Driving Innovation:** The challenge of detecting these distant worlds pushes the boundaries of technology, leading to more powerful telescopes and advanced data analysis algorithms.
+                1. **Life:** Exoplanets offer our best shot at answering “Are we alone?”  
+                2. **Origins:** Comparing many systems teaches us how planets form and how Earth fits in.  
+                3. **Innovation:** The search drives advances in telescopes and data science.
                 """
             )
-            st.write(
-                """
-                In essence, every exoplanet discovered is a piece of a giant puzzle that helps us understand the Universe and, ultimately, ourselves.
-                """
-            )
+            st.write("Every exoplanet adds a piece to the cosmic puzzle—and helps us understand our place in the universe.")
 
-        # --- Call the new function to display the interactive gallery ---
+        # Interactive gallery (click image to open modal-like panel below)
         show_interactive_planets()
+
+
+# Optional: run directly for quick testing
+if __name__ == "__main__":
+    show_explorer_view()
