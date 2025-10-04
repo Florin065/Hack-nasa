@@ -1,20 +1,61 @@
-# explorer_view.py  (or place inside components/explorer.py)
+# components/explorer.py
 import streamlit as st
 import base64
 import streamlit.components.v1 as components
 
 
-# ---------- Helpers ----------
+# ───────────────────────────────────────────────────────────────────────────────
+# Green gradient divider (helper)
+# ───────────────────────────────────────────────────────────────────────────────
+def _inject_green_divider_css():
+    if st.session_state.get("_green_divider_css_injected"):
+        return
+    st.session_state["_green_divider_css_injected"] = True
+    st.markdown(
+        """
+        <style>
+        .exo-divider {
+          height: 3px;
+          border: 0;
+          margin: .25rem 0 1rem 0;
+          border-radius: 999px;
+          background: linear-gradient(
+            90deg,
+            rgba(16,185,129,0) 0%,
+            rgba(16,185,129,1) 15%,
+            rgba(5,150,105,1) 50%,
+            rgba(16,185,129,1) 85%,
+            rgba(16,185,129,0) 100%
+          );
+          box-shadow: 0 0 10px rgba(16,185,129,.35);
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+def green_header(text: str, level: int = 2):
+    _inject_green_divider_css()
+    tag = f"h{level}"
+    st.markdown(
+        f"<{tag} style='margin:0'>{text}</{tag}><div class='exo-divider'></div>",
+        unsafe_allow_html=True
+    )
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# Helpers for the clickable "anchored modal" planet cards
+# ───────────────────────────────────────────────────────────────────────────────
 def _img_b64(path: str) -> str:
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode("utf-8")
 
 
-def _anchored_modal_card(name: str, img_path: str, body_html: str, key: str, height: int = 700):
+def _anchored_modal_card(name: str, img_path: str, body_html: str, key: str, height: int = 720):
     """
-    Renders a card where clicking the image toggles a 'modal-like' panel
-    that appears directly *below* the image (anchored to the card).
-    The panel has its own scroll area to avoid text being cut off.
+    Renders a card where clicking the image toggles a glass/blur 'modal-like' panel
+    that appears directly below the image (anchored to the card). The panel scrolls
+    internally so text never gets cut off by the card height.
     """
     b64 = _img_b64(img_path)
 
@@ -23,13 +64,11 @@ def _anchored_modal_card(name: str, img_path: str, body_html: str, key: str, hei
       <style>
         .card-{key} {{
           position: relative;  /* anchor for the panel */
-          
+          border-radius: 14px;
           padding: 10px;
-          
          
           
           
-          -webkit-backdrop-filter: blur(4px);
         }}
         .card-{key} img {{
           width: 100%;
@@ -43,25 +82,26 @@ def _anchored_modal_card(name: str, img_path: str, body_html: str, key: str, hei
           margin-top: 8px; text-align: center; color: #cfeede; font-size: 0.9rem;
         }}
 
+        /* Anchored glass/blur panel below the image */
         #panel-{key} {{
-          display: none;                  /* toggled by JS */
-          margin-top: 10px;               /* BELOW the image */
+          display: none;                /* toggled by JS */
+          margin-top: 10px;             /* BELOW the image */
           border-radius: 12px;
-        
+
           /* translucent + blur (glassmorphism) */
-          background: rgba(14, 17, 23, 0.30);           /* lower alpha = more see-through */
+          background: rgba(14, 17, 23, 0.30);
           backdrop-filter: blur(12px) saturate(120%);
-          -webkit-backdrop-filter: blur(12px) saturate(120%); /* Safari */
-        
+          -webkit-backdrop-filter: blur(12px) saturate(120%);
+
           color: #f5fff7;
-          border: 1px solid rgba(255, 255, 255, 0.18);
-          box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+          border: 1px solid rgba(255,255,255,0.18);
+          box-shadow: 0 16px 40px rgba(0,0,0,0.45);
           padding: 14px 16px 16px 16px;
         }}
 
         /* Inner scrolling area so long text isn't cut off */
         #panel-content-{key} {{
-          max-height: 50vh;          /* adjust if you want taller/shorter */
+          max-height: 50vh;             /* adjust if you want taller/shorter */
           overflow: auto;
           line-height: 1.6;
         }}
@@ -82,7 +122,7 @@ def _anchored_modal_card(name: str, img_path: str, body_html: str, key: str, hei
           background: rgba(255,255,255,0.08);
         }}
 
-       
+        
       </style>
 
       <div class="card-{key}">
@@ -120,18 +160,20 @@ def _anchored_modal_card(name: str, img_path: str, body_html: str, key: str, hei
     components.html(html_block, height=height, scrolling=False)
 
 
-# ---------- Gallery ----------
+# ───────────────────────────────────────────────────────────────────────────────
+# Gallery
+# ───────────────────────────────────────────────────────────────────────────────
 def show_interactive_planets():
     """
     Displays an interactive gallery of exoplanets.
-    Clicking the image opens a modal-like pop-up panel *below* the picture.
+    Clicking the image opens a modal-like pop-up panel below the picture.
     """
 
     PLANET_DATA = {
         "Kepler-22b": {
             "image": "assets/explorer/planets/Kepler-22b.png",
             "body": """
-                <b>Kepler-22 b </b><br>
+                <b>Kepler-22 b — Possible water world</b><br>
                 <b>Discovered 2011:</b> A possible ocean world orbiting in the habitable zone—the region around a star
                 where the temperature is right for liquid water, a requirement for life on Earth.
             """
@@ -139,7 +181,7 @@ def show_interactive_planets():
         "Kepler-452b": {
             "image": "assets/explorer/planets/Kepler-452b.png",
             "body": """
-                <b>Kepler-452 b</b><br>
+                <b>Kepler-452 b — Earth's older cousin</b><br>
                 <b>Discovered 2015:</b> An "Earth-cousin" that orbits a star like our sun in the habitable zone,
                 where liquid water could exist.
             """
@@ -147,7 +189,7 @@ def show_interactive_planets():
         "WASP-96b": {
             "image": "assets/explorer/planets/WASP-96b.png",
             "body": """
-                <b>WASP-96 b</b><br>
+                <b>WASP-96 b — Hot and puffy with a signature of water</b><br>
                 <b>Discovered 2014:</b> An international team found that WASP-96 b is a world with a sodium rich atmosphere.
                 The planet, located nearly 1,150 light-years from Earth, orbits its star every 3.4 days. It has about half
                 the mass of Jupiter, and its discovery was announced in 2014.
@@ -155,7 +197,7 @@ def show_interactive_planets():
         }
     }
 
-    st.header("Featured Exoplanets", divider="rainbow")
+    green_header("Featured Exoplanets", level=2)
 
     cols = st.columns(3)
     idx = 0
@@ -171,7 +213,9 @@ def show_interactive_planets():
         idx = (idx + 1) % 3
 
 
-# ---------- Explorer page scaffold ----------
+# ───────────────────────────────────────────────────────────────────────────────
+# Explorer page scaffold
+# ───────────────────────────────────────────────────────────────────────────────
 def show_explorer_view():
     """
     Shows a title and a button. When clicked, it reveals the
@@ -183,7 +227,7 @@ def show_explorer_view():
     def reveal_details():
         st.session_state.show_details = True
 
-    # CSS Styling
+    # CSS for expanders and hero title
     st.markdown(
         """
         <style>
@@ -248,9 +292,9 @@ def show_explorer_view():
             st.button("Let's find out", on_click=reveal_details, use_container_width=True)
 
     else:
-        st.header("The Importance of Exoplanets", divider="rainbow")
+        green_header("The Importance of Exoplanets", level=2)
 
-        with st.expander("What Are Exoplanets? 🪐"):
+        with st.expander("What are Exoplanets?"):
             st.write(
                 """
                 An **exoplanet** is any planet that orbits a star outside our solar system. The first confirmed discovery
@@ -259,7 +303,7 @@ def show_explorer_view():
                 """
             )
 
-        with st.expander("How Do We Find Worlds Light-Years Away? 🔭"):
+        with st.expander("How do we find Exoplanets?"):
             st.write(
                 "Detecting exoplanets is challenging because they are far dimmer than their host stars. Two key methods:"
             )
@@ -270,7 +314,7 @@ def show_explorer_view():
                 """
             )
 
-        with st.expander("So, Why Are Exoplanets Important? 🤔"):
+        with st.expander("Why are Exoplanets important?"):
             st.write("Three core reasons this field matters:")
             st.markdown(
                 """

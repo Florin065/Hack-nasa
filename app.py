@@ -181,8 +181,7 @@ elif st.session_state.role is None:
 
         /* Hover: green tint + green border/shadow */
         .stButton > button:hover {
-            background-color: #e9fce9 !important;                 /* light green */
-            border-color: rgba(34, 197, 94, 0.6) !important;      /* emerald */
+            
             box-shadow:
                 0 8px 22px rgba(6, 78, 59, 0.65),
                 0 4px 10px rgba(6, 78, 59, 0.45) !important;      /* darker green shadow */
@@ -191,7 +190,7 @@ elif st.session_state.role is None:
 
         /* Active (mouse down): slightly darker green */
         .stButton > button:active {
-            background-color: #d8f8d8 !important;                 /* darker light green */
+           
             border-color: rgba(22, 163, 74, 0.8) !important;      /* deeper emerald */
             box-shadow:
                 0 5px 12px rgba(6, 78, 59, 0.50),
@@ -225,7 +224,7 @@ elif st.session_state.role is None:
     col1, col2, col3, col4 = st.columns([1, 2, 2, 1])
     with col2:
         st.button(
-            "🔬 Data Scientist",
+            "Data Scientist",
             on_click=start_transition,
             args=('datascientist',),
             use_container_width=True,
@@ -233,7 +232,7 @@ elif st.session_state.role is None:
         )
     with col3:
         st.button(
-            "✨ Explorer",
+            "Explorer",
             on_click=start_transition,
             args=('explorer',),
             use_container_width=True,
