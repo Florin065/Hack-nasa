@@ -12,5 +12,4 @@ def show_datascientist_view():
 
     if uploaded_file is not None:
         st.success("Fișier încărcat cu succes!")
-        # Aici poți adăuga logica pentru procesarea datelor
         st.line_chart(uploaded_file)
