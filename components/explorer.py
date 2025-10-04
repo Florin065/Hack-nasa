@@ -1,10 +1,53 @@
 import streamlit as st
 
 
+def show_interactive_planets():
+    """
+    Displays an interactive gallery of exoplanets.
+    Clicking a button opens a dialog (pop-up) with details.
+    """
+
+    # --- Data for the Exoplanets ---
+    # Make sure the image paths match your folder structure (e.g., "assets/planets/Kepler-22b.jpeg")
+    PLANET_DATA = {
+        "Kepler-22b": {
+            "image": "assets/explorer/planets/Kepler-22b.png",
+            "description": "One of the first 'Super-Earths' found within its star's habitable zone. It's about 2.4 times the size of Earth and orbits a Sun-like star, making it a famous candidate in the search for potentially habitable worlds."
+        },
+        "Kepler-452b": {
+            "image": "assets/explorer/planets/Kepler-452b.jpeg",
+            "description": "Often called 'Earth's Cousin,' this exoplanet orbits a star very similar to our Sun. It is located in the habitable zone, but its larger size means it could be a rocky 'Super-Earth' or a small gas planet."
+        },
+        "WASP-96b": {
+            "image": "assets/explorer/planets/WASP-96b.png",
+            "description": "A hot, puffy gas giant famous for being one of the first targets of the James Webb Space Telescope. Webb's observations provided a detailed atmospheric analysis, revealing the unambiguous signature of water."
+        }
+    }
+
+    st.header("Featured Exoplanets", divider="rainbow")
+
+    # --- Create the Gallery ---
+    cols = st.columns(3)
+    col_index = 0
+
+    for planet_name, data in PLANET_DATA.items():
+        with cols[col_index]:
+            with st.container(border=True):
+                st.image(data["image"])
+
+                # Button to open the dialog
+                if st.button(f"Details about {planet_name}", key=planet_name, use_container_width=True):
+                    with st.dialog(f"Information: {planet_name}"):
+                        st.image(data["image"])
+                        st.write(data["description"])
+
+        col_index = (col_index + 1) % 3
+
+
 def show_explorer_view():
     """
-    Shows a title and a button. When the button is clicked,
-    it reveals the informational expanders with an opaque background.
+    Shows a title and a button. When clicked, it reveals the
+    informational expanders and the interactive planet gallery.
     """
     if 'show_details' not in st.session_state:
         st.session_state.show_details = False
@@ -42,14 +85,12 @@ def show_explorer_view():
             margin-top: 10px;
             margin-bottom: 40px;
           }
-
-          /* --- NOU: Stil pentru Expander --- */
           [data-testid="stExpander"] {
             border: none;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
           }
           [data-testid="stExpander"] > details > summary {
-            background-color: #1a1a2e; /* Culoare de fundal pentru titlul expanderului */
+            background-color: #1a1a2e;
             color: #ffffff;
             border-radius: 10px;
           }
@@ -80,7 +121,6 @@ def show_explorer_view():
 
     else:
         st.header("The Importance of Exoplanets", divider="rainbow")
-
 
         with st.expander("What Are Exoplanets? 🪐"):
             st.write(
@@ -123,3 +163,6 @@ def show_explorer_view():
                 In essence, every exoplanet discovered is a piece of a giant puzzle that helps us understand the Universe and, ultimately, ourselves.
                 """
             )
+
+        # --- Call the new function to display the interactive gallery ---
+        show_interactive_planets()
