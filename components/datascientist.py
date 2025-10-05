@@ -1,18 +1,15 @@
-# components/datascientist.py
 import streamlit as st
 import math
 import requests
 
 
-# --- Physical constants ---
 G_cgs = 6.67430e-8             # cm^3 g^-1 s^-2
 R_sun_cm = 6.957e10            # cm
 R_sun_AU = 0.00465047          # AU
 M_sun_g = 1.98847e33           # g
-sigma_sb_cgs = 5.670374419e-5  # erg cm^-2 s^-1 K^-4 (not directly needed)
+sigma_sb_cgs = 5.670374419e-5  # erg cm^-2 s^-1 K^-4
 T_sun_K = 5772.0
 
-# --- Helpers ---
 def _stellar_mass_from_logg_R(logg_cgs: float, R_solar: float) -> float:
     """Return stellar mass in solar masses from log g (cgs) and radius in solar radii."""
     g = 10 ** logg_cgs              # cm s^-2
@@ -44,7 +41,6 @@ def _depth_from_radii(Rp_Re: float, Rstar_Rsun: float) -> float:
     """Transit depth (fraction) ≈ (Rp/R*)^2 using Earth & Solar radii."""
     if Rp_Re <= 0 or Rstar_Rsun <= 0:
         return float("nan")
-    # Earth radius relative to Sun radius (cm/cm)
     R_earth_over_R_sun = 6371e5 / R_sun_cm
     Rp_over_Rstar = (Rp_Re * R_earth_over_R_sun) / Rstar_Rsun
     return (Rp_over_Rstar ** 2)
@@ -77,14 +73,11 @@ def _rel_err(x, y):
 def _go_home():
     """Navigate back to the main role-selection page."""
     try:
-        # Adjust if your main entry file has a different name.
         st.switch_page("app.py")
     except Exception:
-        # Fallback for single-file routing
         st.session_state.update(role=None)
         st.rerun()
 
-# --- UI ---
 def show_datascientist_view():
     st.markdown(
         "<h2 style='color:white; text-align:center;'>Exoplanet Check</h2>",
@@ -110,14 +103,12 @@ def show_datascientist_view():
         unsafe_allow_html=True,
     )
 
-    # ---------------- Sidebar: API settings ----------------
     API_URL = st.sidebar.text_input(
         "Backend URL (Colab/Cloudflare)",
-        value="https://apps-bent-determine-pollution.trycloudflare.com"
+        value="https://stripes-compiler-longitude-zshops.trycloudflare.com"
     ).strip()
     API_TOKEN = st.sidebar.text_input("API token (optional)", type="password")
 
-    # (opțional) buton de health-check
     if st.sidebar.button("Ping backend"):
         try:
             r = requests.get(f"{API_URL.rstrip('/')}/", timeout=10)
@@ -125,23 +116,22 @@ def show_datascientist_view():
         except Exception as e:
             st.sidebar.error(f"Ping failed: {e}")
 
-    # ---------------- Formularul de intrare ----------------
     with st.form("exo_form", clear_on_submit=False):
         cols = st.columns(2)
 
         fields = [
-            ("Orbital period (days)",               dict(min_value=0.0, step=0.1,  format="%.4f", key="P_days")),
+            ("Orbital period (days)",               dict(min_value=0.0, step=0.1,  format="%.5f", key="P_days")),
             ("Transit epoch (e.g., BJD_TDB)",       dict(step=0.1,                 format="%.5f", key="t0")),
-            ("Transit duration (hours)",            dict(min_value=0.0, step=0.1,  format="%.3f", key="dur_hours")),
-            ("Transit depth (ppm)",                 dict(min_value=0.0, step=10.0, format="%.3f", key="depth_val")),
-            ("Planetary radius (Earth radii)",      dict(min_value=0.0, step=0.1,  format="%.3f", key="Rp_Re")),
-            ("Equilibrium temperature (K)",         dict(min_value=0.0, step=10.0, format="%.1f", key="Teq_K")),
-            ("Earth flux",                          dict(min_value=0.0, step=0.1,  format="%.3f", key="S_earth")),
-            ("Stellar effective temperature (K)",   dict(min_value=0.0, step=10.0, format="%.1f", key="Teff_K")),
-            ("Stellar surface gravity log g (cgs)", dict(min_value=0.0, step=0.01, format="%.3f", key="logg")),
-            ("Stellar radius (Solar radii)",        dict(min_value=0.0, step=0.01, format="%.4f", key="Rstar_Rsun")),
-            ("Right ascension (deg, 0–360)",        dict(min_value=0.0, max_value=360.0, step=0.1, format="%.4f", key="RA_deg")),
-            ("Declination (deg, -90–+90)",          dict(min_value=0.0, max_value=90.0, step=0.1, format="%.4f", key="Dec_deg")),
+            ("Transit duration (hours)",            dict(min_value=0.0, step=0.1,  format="%.5f", key="dur_hours")),
+            ("Transit depth (ppm)",                 dict(min_value=0.0, step=10.0, format="%.5f", key="depth_val")),
+            ("Planetary radius (Earth radii)",      dict(min_value=0.0, step=0.1,  format="%.5f", key="Rp_Re")),
+            ("Equilibrium temperature (K)",         dict(min_value=0.0, step=10.0, format="%.5f", key="Teq_K")),
+            ("Earth flux",                          dict(min_value=0.0, step=0.1,  format="%.5f", key="S_earth")),
+            ("Stellar effective temperature (K)",   dict(min_value=0.0, step=10.0, format="%.5f", key="Teff_K")),
+            ("Stellar surface gravity log g (cgs)", dict(min_value=0.0, step=0.01, format="%.5f", key="logg")),
+            ("Stellar radius (Solar radii)",        dict(min_value=0.0, step=0.01, format="%.5f", key="Rstar_Rsun")),
+            ("Right ascension (deg, 0–360)",        dict(min_value=0.0, max_value=360.0, step=0.1, format="%.5f", key="RA_deg")),
+            ("Declination (deg, -90–+90)",          dict(min_value=0.0, max_value=90.0, step=0.1, format="%.5f", key="Dec_deg")),
         ]
 
         for i, (label, kwargs) in enumerate(fields):
@@ -150,14 +140,12 @@ def show_datascientist_view():
 
         submitted = st.form_submit_button("Check parameters")
 
-    # Before submit: doar back button
     if not submitted:
         st.divider()
         if st.button("← Back to role selection"):
             _go_home()
         return
 
-    # ---------------- Citește valorile din state ----------------
     P_days       = st.session_state.get("P_days", 0.0)
     t0           = st.session_state.get("t0", 0.0)
     dur_hours    = st.session_state.get("dur_hours", 0.0)
@@ -171,7 +159,6 @@ def show_datascientist_view():
     RA_deg       = st.session_state.get("RA_deg", 0.0)
     Dec_deg      = st.session_state.get("Dec_deg", 0.0)
 
-    # ---------------- Payload pentru backend ----------------
     payload = {
         "period_days": P_days,
         "t0": t0,
@@ -187,7 +174,6 @@ def show_datascientist_view():
         "dec_deg": Dec_deg,
     }
 
-    # ---------------- Apel API backend ----------------
     st.divider()
     if not API_URL:
         st.error("Setează URL-ul backendului în sidebar.")
@@ -205,34 +191,86 @@ def show_datascientist_view():
         resp.raise_for_status()
         data = resp.json()
 
+        probability = data.get("probability", 0.0)
+        label = data.get("label", 0)
+        threshold = data.get("threshold", 0.5)
+        echo = data.get("echo", {})
 
+        planet_radius = echo.get("radius_earth", "N/A")
+        eq_temp_k = echo.get("teq_K", "N/A")
+        orbital_period_days = echo.get("period_days", "N/A")
+        star_temp_k = echo.get("teff_star_K", "N/A")
 
-        # Sumar prietenos dacă există câmpuri cunoscute
-        score = data.get("score", None)
-        if isinstance(score, (int, float)):
-            st.metric("Score", f"{score:.3f}")
+        eq_temp_c = eq_temp_k - 273.15 if isinstance(eq_temp_k, (int, float)) else "N/A"
 
-        # features = data.get("features") or {}
-        # if features:
-        #     cols_info = st.columns(3)
-        #     with cols_info[0]:
-        #         st.write("*Year (years)*:", features.get("year_years"))
-        #         st.write("*a [AU]*:", features.get("a_AU"))
-        #     with cols_info[1]:
-        #         st.write("*S_rel*:", features.get("S_rel"))
-        #         st.write("*TOA mean*:", features.get("TOA_global_mean"))
-        #     with cols_info[2]:
-        #         st.write("*planet_size*:", features.get("planet_size"))
-        #         st.write("*star_type*:", features.get("star_type"))
-        #
-        # with st.expander("Răspuns JSON complet"):
-        #     st.json(data)
+        star_type = "Unknown"
+        if isinstance(star_temp_k, (int, float)):
+            if star_temp_k >= 7500: star_type = "A-type (Hot, Blue-White)"
+            elif star_temp_k >= 6000: star_type = "F-type (White)"
+            elif star_temp_k >= 5200: star_type = "G-type (Sun-like, Yellow)"
+            elif star_temp_k >= 3700: star_type = "K-type (Orange Dwarf)"
+            else: star_type = "M-type (Red Dwarf)"
+
+        if label == 1:
+            verdict_text = "Promising Exoplanet"
+            verdict_color = "#28a745"
+            verdict_emoji = "✅"
+            explanation = (
+                "The model suggests this candidate has characteristics consistent with a potentially "
+                "viable exoplanet. The probability score is above the decision threshold."
+            )
+        else:
+            verdict_text = "Unlikely Exoplanet"
+            verdict_color = "#dc3545"
+            verdict_emoji = "❌"
+            explanation = (
+                "The model indicates a low probability for this candidate. Key factors might place it "
+                "outside the typical parameters for a viable exoplanet or habitable zone."
+            )
+
+        summary_html = f"""
+        <div style="
+            background: rgba(10, 20, 30, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 1rem 0;
+            color: white;
+            backdrop-filter: blur(5px);
+        ">
+            <h3 style="color: {verdict_color}; text-align: center; margin-top:0;">
+                {verdict_emoji} AI/ML Verdict: {verdict_text}
+            </h3>
+            <p style="text-align: center; font-size: 0.9rem; color: #E0E0E0;">
+                {explanation}
+            </p>
+            <hr style="border-color: rgba(255, 255, 255, 0.2); margin: 15px 0;">
+            <div style="display: flex; justify-content: space-around; text-align: center;">
+                <div style="flex-basis: 50%;">
+                    <h5 style="margin-bottom: 5px; color: #A0C0FF;">System Profile</h5>
+                    <p style="margin: 2px; font-size: 0.95rem;"><b>Planet Radius:</b> {planet_radius:.2f} x Earth</p>
+                    <p style="margin: 2px; font-size: 0.95rem;"><b>Eq. Temperature:</b> {eq_temp_k} K ({eq_temp_c:.1f}°C)</p>
+                    <p style="margin: 2px; font-size: 0.95rem;"><b>Orbital Period:</b> {orbital_period_days} days</p>
+                    <p style="margin: 2px; font-size: 0.95rem;"><b>Host Star (Est.):</b> {star_type}</p>
+                </div>
+                <div style="border-left: 1px solid rgba(255, 255, 255, 0.2); height: 100px; margin: auto 0;"></div>
+                <div style="flex-basis: 50%;">
+                    <h5 style="margin-bottom: 5px; color: #A0C0FF;">Model Confidence</h5>
+                    <p style="margin: 2px; font-size: 0.95rem;"><b>Probability Score:</b> {probability:.2%}</p>
+                    <p style="margin: 2px; font-size: 0.95rem;"><b>Decision Threshold:</b> {threshold:.2%}</p>
+                </div>
+            </div>
+        </div>
+        """
+        st.markdown(summary_html, unsafe_allow_html=True)
+
+        with st.expander("Full JSON response"):
+            st.json(data)
 
     except requests.exceptions.RequestException as e:
-        st.error(f"Eroare API: {e}")
-        with st.expander("Payload trimis (debug)"):
+        st.error(f"API error: {e}")
+        with st.expander("Payload sent)"):
             st.json(payload)
 
-    st.divider()
     if st.button("← Back to role selection"):
         _go_home()

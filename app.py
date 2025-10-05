@@ -10,11 +10,9 @@ st.set_page_config(
     layout="wide"
 )
 
-# Hide Streamlit multipage navigation (tabs/sidebar) to remove visible page tabs
 st.markdown(
     """
     <style>
-    /* Hide multipage navigation and sidebar elements */
     [data-testid="stSidebarNav"] { display: none !important; }
     nav[aria-label="Page navigation"] { display: none !important; }
     section[data-testid="stSidebar"] { display: none !important; }
@@ -25,13 +23,10 @@ st.markdown(
     button[aria-label="Toggle sidebar"],
     button[aria-label="Open sidebar"],
     button[aria-label="Close sidebar"] { display: none !important; }
-    /* Hide the top toolbar/hamburger menu */
     [data-testid="stToolbar"],
     header [data-testid="baseButton-header"],
     header [data-testid="baseLink-logo"] { display: none !important; }
-    /* Hide Streamlit's top header bar */
     [data-testid="stHeader"] { display: none !important; }
-    /* Remove extra top padding when header is hidden */
     .block-container { padding-top: 0 !important; }
     </style>
     """,
@@ -101,13 +96,11 @@ if st.session_state.transitioning:
 
     time.sleep(TRANSITION_DURATION_SEC)
     target = st.session_state.transition_target
-    # Clear flags before navigation
     st.session_state.transitioning = False
     st.session_state.transition_target = None
     st.session_state.transition_start = None
     st.session_state.buttons_disabled = False
 
-    # Prefer navigating to multipage targets if available
     try:
         if target == 'explorer':
             st.switch_page("pages/1_Explorer.py")
@@ -116,7 +109,6 @@ if st.session_state.transitioning:
         else:
             raise RuntimeError("Unknown target")
     except Exception:
-        # Fallback to in-app role switching if switch_page is unavailable
         st.session_state.role = target
         st.rerun()
 
@@ -128,7 +120,6 @@ elif st.session_state.role is None:
         unsafe_allow_html=True,
     )
 
-    # ⬇️ Descriptive text block under the title
     st.markdown(
         """
         <div style="
@@ -136,12 +127,12 @@ elif st.session_state.role is None:
           margin: 12px auto 28px auto;
           text-align: center;
           color: #f5fff7;
-          background: rgba(0, 0, 0, 0.28);      /* subtle translucent bg (≈28% opaque) */
+          background: rgba(0, 0, 0, 0.28);
           border: 1px solid rgba(255,255,255,0.10);
           border-radius: 14px;
           padding: 14px 20px;
           box-shadow: 0 8px 22px rgba(0,0,0,0.25);
-          backdrop-filter: blur(4px);           /* soft glass effect */
+          backdrop-filter: blur(4px);
           -webkit-backdrop-filter: blur(4px);
         ">
             <p style="margin:0.2rem 0 0.5rem 0; font-size: 1.05rem; line-height:1.5; text-shadow: 0 1px 2px rgba(0,0,0,0.45);">
@@ -161,17 +152,16 @@ elif st.session_state.role is None:
     st.markdown(
         """
         <style>
-        /* Base button */
         .stButton > button {
             background: rgba(255,255,255,0.92) !important;
             color: #0b1736 !important;
-            border: 1px solid rgba(6, 78, 59, 0.35) !important; /* dark green border */
+            border: 1px solid rgba(6, 78, 59, 0.35) !important;
             border-radius: 10px !important;
             padding: 0.6rem 1rem !important;
             font-weight: 600 !important;
             box-shadow:
                 0 6px 16px rgba(6, 78, 59, 0.55),
-                0 2px 6px rgba(6, 78, 59, 0.35) !important;      /* dark green shadow */
+                0 2px 6px rgba(6, 78, 59, 0.35) !important;
             backdrop-filter: blur(2px);
             transition: transform .12s ease,
                         box-shadow .12s ease,
@@ -179,26 +169,21 @@ elif st.session_state.role is None:
                         background-color .12s ease !important;
         }
 
-        /* Hover: green tint + green border/shadow */
         .stButton > button:hover {
-            
             box-shadow:
                 0 8px 22px rgba(6, 78, 59, 0.65),
-                0 4px 10px rgba(6, 78, 59, 0.45) !important;      /* darker green shadow */
+                0 4px 10px rgba(6, 78, 59, 0.45) !important;
             transform: translateY(-1px);
         }
 
-        /* Active (mouse down): slightly darker green */
         .stButton > button:active {
-           
-            border-color: rgba(22, 163, 74, 0.8) !important;      /* deeper emerald */
+            border-color: rgba(22, 163, 74, 0.8) !important;
             box-shadow:
                 0 5px 12px rgba(6, 78, 59, 0.50),
                 0 2px 6px rgba(6, 78, 59, 0.35) !important;
             transform: translateY(0) scale(0.99);
         }
 
-        /* Keyboard focus: green focus ring (no blue) */
         .stButton > button:focus,
         .stButton > button:focus-visible {
             outline: none !important;
@@ -208,7 +193,6 @@ elif st.session_state.role is None:
                 0 10px 24px rgba(6, 78, 59, 0.30) !important;
         }
 
-        /* Disabled */
         .stButton > button:disabled,
         .stButton > button[disabled] {
             background: rgba(255,255,255,0.6) !important;

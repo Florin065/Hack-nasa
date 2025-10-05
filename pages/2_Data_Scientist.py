@@ -3,7 +3,6 @@ import base64
 
 st.set_page_config(page_title="Data Scientist", page_icon="🔬", layout="wide")
 
-# Hide multipage navigation, sidebar, and toggle/toolbar
 st.markdown(
     """
     <style>
@@ -50,6 +49,5 @@ def _set_page_bg(image_file: str):
 
 _set_page_bg("assets/backgrounds/background.jpeg")
 
-# Use the full Data Scientist view from the component
 from components.datascientist import show_datascientist_view
 show_datascientist_view()
