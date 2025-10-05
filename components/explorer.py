@@ -197,7 +197,7 @@ def show_interactive_planets():
         }
     }
 
-    green_header("Featured Exoplanets", level=2)
+    green_header("Exoplanets with water detected", level=2)
 
     cols = st.columns(3)
     idx = 0
