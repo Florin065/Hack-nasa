@@ -30,6 +30,7 @@ def _inject_green_divider_css():
         unsafe_allow_html=True,
     )
 
+
 def green_header(text: str, level: int = 2):
     _inject_green_divider_css()
     tag = f"h{level}"
@@ -106,12 +107,12 @@ def _anchored_modal_card(name: str, img_path: str, body_html: str, key: str, hei
           background: rgba(255,255,255,0.08);
         }}
 
-        
+
       </style>
 
       <div class="card-{key}">
         <img id="img-{key}" src="data:image/png;base64,{b64}" alt="{name}">
-        
+
 
         <div id="panel-{key}">
           <span class="panel-close-{key}" id="close-{key}" title="Close">✕</span>
@@ -139,7 +140,6 @@ def _anchored_modal_card(name: str, img_path: str, body_html: str, key: str, hei
       </script>
     </div>
     """
-    # height controls the iframe that hosts this card; make it tall enough for the panel
     components.html(html_block, height=height, scrolling=False)
 
 
@@ -191,7 +191,7 @@ def show_interactive_planets():
                 img_path=data["image"],
                 body_html=data["body"],
                 key=name.replace(" ", "_"),
-                height=720,  # increase if you want more space for the open panel
+                height=720,
             )
         idx = (idx + 1) % 3
 
@@ -237,20 +237,34 @@ def show_explorer_view():
             margin-top: 10px;
             margin-bottom: 40px;
           }
+          /* --- START OF MODIFIED CSS FOR EXPANDERS --- */
           [data-testid="stExpander"] {
             border: none;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            border-radius: 10px; /* Ensure rounded corners on the outside */
+            overflow: hidden; /* Important for backdrop-filter to work well with borders */
+            margin-bottom: 10px !important; /* MODIFICAT: Reduce space between expanders */
           }
           [data-testid="stExpander"] > details > summary {
-            background-color: #1a1a2e;
+            background-color: #1a1a2e; /* Original summary background */
             color: #ffffff;
             border-radius: 10px;
+            padding: 0.6rem 1rem !important; /* MODIFICAT: Made header smaller */
+            font-size: 0.9rem !important; /* MODIFICAT: Made font smaller */
           }
           [data-testid="stExpander"] > details > div {
-            background-color: #0e1117;
-            border-radius: 0 0 10px 10px;
+            /* Apply the glassmorphism style here */
+            background: rgba(14, 17, 23, 0.30);           /* lower alpha = more see-through */
+            backdrop-filter: blur(12px) saturate(120%);
+            -webkit-backdrop-filter: blur(12px) saturate(120%); /* Safari */
+            color: #f5fff7;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-top: none; /* Remove top border to blend with summary */
+            border-radius: 0 0 10px 10px; /* Only bottom corners rounded */
             padding: 1rem;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45); /* Add shadow for depth */
           }
+          /* --- END OF MODIFIED CSS FOR EXPANDERS --- */
         </style>
         """,
         unsafe_allow_html=True,
@@ -272,7 +286,7 @@ def show_explorer_view():
             st.button("Let's find out", on_click=reveal_details, use_container_width=True)
 
     else:
-        green_header("The Importance of Exoplanets", level=2)
+        green_header("The importance of Exoplanets", level=2)
 
         with st.expander("What are exoplanets?"):
             st.write(
@@ -339,4 +353,5 @@ def show_explorer_view():
 
 
 if __name__ == "__main__":
+    st.set_page_config(layout="wide")
     show_explorer_view()
