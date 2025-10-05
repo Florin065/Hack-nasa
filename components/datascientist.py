@@ -105,7 +105,7 @@ def show_datascientist_view():
 
     API_URL = st.sidebar.text_input(
         "Backend URL (Colab/Cloudflare)",
-        value="https://stripes-compiler-longitude-zshops.trycloudflare.com"
+        value="https://olympic-mathematics-fork-covers.trycloudflare.com"
     ).strip()
     API_TOKEN = st.sidebar.text_input("API token (optional)", type="password")
 
@@ -187,12 +187,15 @@ def show_datascientist_view():
 
     try:
         with st.spinner("Contacting backend…"):
+            print(payload)
             resp = requests.post(f"{API_URL.rstrip('/')}/predict", json=payload, headers=headers, timeout=30)
         resp.raise_for_status()
         data = resp.json()
 
-        probability = data.get("probability", 0.0)
-        label = data.get("label", 0)
+        probability = data.get("probability", 0.0) * 100
+        label = 0
+        if probability * 100 > 75.00:
+            label = 1
         threshold = data.get("threshold", 0.5)
         echo = data.get("echo", {})
 
