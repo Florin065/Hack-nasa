@@ -20,9 +20,7 @@ st.markdown(
     [data-testid="stToolbar"],
     header [data-testid="baseButton-header"],
     header [data-testid="baseLink-logo"] { display: none !important; }
-    /* Hide Streamlit's top header bar */
     [data-testid="stHeader"] { display: none !important; }
-    /* Remove extra top padding when header is hidden */
     .block-container { padding-top: 0 !important; }
     </style>
     """,
