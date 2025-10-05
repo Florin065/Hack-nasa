@@ -261,7 +261,7 @@ def show_explorer_view():
             """
             <div class="title-container">
               <h1 class="big-title">Why are exoplanets important for humanity?</h1>
-              <p class="subtitle">Let's discover the worlds beyond our solar system</p>
+              <h4 class="subtitle">Let's discover the worlds beyond our solar system</h4>
             </div>
             """,
             unsafe_allow_html=True
@@ -274,7 +274,7 @@ def show_explorer_view():
     else:
         green_header("The Importance of Exoplanets", level=2)
 
-        with st.expander("What are exoplanets? 🪐"):
+        with st.expander("What are exoplanets?"):
             st.write(
                 """
                 An **exoplanet** is any planet that orbits a star outside our solar system. The first confirmed discovery
@@ -283,7 +283,7 @@ def show_explorer_view():
                 """
             )
 
-        with st.expander("Types of Exoplanets 🔭"):
+        with st.expander("Types of Exoplanets"):
             st.markdown(
                 """
                 The thousands of exoplanets discovered so far fall into a few broad categories, many of which are unlike anything in our own solar system:
@@ -294,7 +294,7 @@ def show_explorer_view():
                 """
             )
 
-        with st.expander("How do we find exoplanets? 🛰️"):
+        with st.expander("How do we find exoplanets?"):
             st.write(
                 "Detecting exoplanets is challenging because they are far dimmer than their host stars. Two key methods:"
             )
@@ -305,7 +305,7 @@ def show_explorer_view():
                 """
             )
 
-        with st.expander("The 'Goldilocks' Zone 🎯"):
+        with st.expander("The 'Goldilocks' Zone"):
             st.write(
                 """
                 The **habitable zone**, often called the "Goldilocks Zone," is the orbital region around a star where conditions are "just right"—not too hot and not too cold—for liquid water to exist on a planet's surface.
@@ -314,7 +314,7 @@ def show_explorer_view():
                 """
             )
 
-        with st.expander("So, why are exoplanets important? 🤔"):
+        with st.expander("So, why are exoplanets important?"):
             st.write("Three core reasons this field matters:")
             st.markdown(
                 """
