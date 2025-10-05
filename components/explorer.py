@@ -44,16 +44,24 @@ def _img_b64(path: str) -> str:
         return base64.b64encode(f.read()).decode("utf-8")
 
 
-def _anchored_modal_card(name: str, img_path: str, body_html: str, key: str, height: int = 720):
+def _anchored_modal_card(
+    name: str,
+    img_path: str,
+    body_html: str,
+    key: str,
+    height: int = 640,
+    img_scale: float = 0.75,   # <— imagine mai mică (75% din lățimea cardului)
+    offset_px: int = 0         # <— offset vertical al cardului (px)
+):
     """
     Renders a card where clicking the image toggles a glass/blur 'modal-like' panel
     that appears directly below the image (anchored to the card). The panel scrolls
     internally so text never gets cut off by the card height.
     """
     b64 = _img_b64(img_path)
-
+    img_width_percent = int(img_scale * 100)
     html_block = f"""
-    <div style="max-width: 720px; margin: 0 auto;">
+    <div style="max-width: 720px; margin: 0 auto; margin-top:{offset_px}px;">
       <style>
         .card-{key} {{
           position: relative;  /* anchor for the panel */
@@ -61,11 +69,12 @@ def _anchored_modal_card(name: str, img_path: str, body_html: str, key: str, hei
           padding: 10px;
         }}
         .card-{key} img {{
-          width: 100%;
+          width: {img_width_percent}%;
           display: block;
           border-radius: 12px;
           cursor: pointer;
           border: none;
+          margin: 0 auto;      
           box-shadow: none;
         }}
         .hint-{key} {{
