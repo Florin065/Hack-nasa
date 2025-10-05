@@ -44,25 +44,35 @@ def _img_b64(path: str) -> str:
         return base64.b64encode(f.read()).decode("utf-8")
 
 
-def _anchored_modal_card(name: str, img_path: str, body_html: str, key: str, height: int = 720):
+def _anchored_modal_card(
+    name: str,
+    img_path: str,
+    body_html: str,
+    key: str,
+    height: int = 640,
+    img_scale: float = 0.75,   # <— imagine mai mică (75% din lățimea cardului)
+    offset_px: int = 0         # <— offset vertical al cardului (px)
+):
     """
-    Renders a card where clicking the image toggles a glass/blur 'modal-like' panel
-    that appears directly below the image (anchored to the card). The panel scrolls
-    internally so text never gets cut off by the card height.
+    Card cu panou 'ancorat' sub imagine. img_scale controlează mărimea imaginii,
+    iar offset_px permite coborârea unui card (ex: cel din mijloc).
     """
     b64 = _img_b64(img_path)
 
+    img_width_percent = int(img_scale * 100)
+
     html_block = f"""
-    <div style="max-width: 720px; margin: 0 auto;">
+    <div style="max-width: 720px; margin: 0 auto; margin-top:{offset_px}px;">
       <style>
         .card-{key} {{
-          position: relative;  /* anchor for the panel */
+          position: relative;
           border-radius: 14px;
           padding: 10px;
         }}
         .card-{key} img {{
-          width: 100%;
+          width: {img_width_percent}%;
           display: block;
+          margin: 0 auto;               /* centrează imaginea */
           border-radius: 12px;
           cursor: pointer;
           border: none;
@@ -71,7 +81,6 @@ def _anchored_modal_card(name: str, img_path: str, body_html: str, key: str, hei
         .hint-{key} {{
           margin-top: 8px; text-align: center; color: #cfeede; font-size: 0.9rem;
         }}
-
         #panel-{key} {{
           display: none;
           margin-top: 10px;
@@ -83,13 +92,11 @@ def _anchored_modal_card(name: str, img_path: str, body_html: str, key: str, hei
           box-shadow: 0 16px 40px rgba(0,0,0,0.45);
           padding: 14px 16px 16px 16px;
         }}
-
         #panel-content-{key} {{
           max-height: 50vh;
           overflow: auto;
           line-height: 1.6;
         }}
-
         .panel-close-{key} {{
           position: sticky;
           top: 0;
@@ -102,23 +109,15 @@ def _anchored_modal_card(name: str, img_path: str, body_html: str, key: str, hei
           padding: 2px 6px;
           border-radius: 8px;
         }}
-        .panel-close-{key}:hover {{
-          background: rgba(255,255,255,0.08);
-        }}
-
-        
+        .panel-close-{key}:hover {{ background: rgba(255,255,255,0.08); }}
       </style>
 
       <div class="card-{key}">
         <img id="img-{key}" src="data:image/png;base64,{b64}" alt="{name}">
-        
-
         <div id="panel-{key}">
           <span class="panel-close-{key}" id="close-{key}" title="Close">✕</span>
           <div class="panel-arrow-{key}"></div>
-          <div id="panel-content-{key}">
-            {body_html}
-          </div>
+          <div id="panel-content-{key}">{body_html}</div>
         </div>
       </div>
 
@@ -127,20 +126,18 @@ def _anchored_modal_card(name: str, img_path: str, body_html: str, key: str, hei
           const img   = document.getElementById("img-{key}");
           const panel = document.getElementById("panel-{key}");
           const close = document.getElementById("close-{key}");
-
           function togglePanel() {{
             if (!panel) return;
             panel.style.display = (panel.style.display === "none" || !panel.style.display) ? "block" : "none";
           }}
-
           if (img)   img.addEventListener("click", togglePanel);
           if (close) close.addEventListener("click", () => panel.style.display = "none");
         }})();
       </script>
     </div>
     """
-    # height controls the iframe that hosts this card; make it tall enough for the panel
     components.html(html_block, height=height, scrolling=False)
+
 
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -148,10 +145,9 @@ def _anchored_modal_card(name: str, img_path: str, body_html: str, key: str, hei
 # ───────────────────────────────────────────────────────────────────────────────
 def show_interactive_planets():
     """
-    Displays an interactive gallery of exoplanets.
-    Clicking the image opens a modal-like pop-up panel below the picture.
+    Galerie interactivă de exoplanete — imaginile sunt mai mici,
+    iar cardul din mijloc este ușor mai jos decât celelalte.
     """
-
     PLANET_DATA = {
         "Kepler-22b": {
             "image": "assets/explorer/planets/Kepler-22b.png",
@@ -183,17 +179,22 @@ def show_interactive_planets():
     green_header("Featured Exoplanets", level=2)
 
     cols = st.columns(3)
-    idx = 0
-    for name, data in PLANET_DATA.items():
-        with cols[idx]:
+    # ordine fixă pentru a controla col-ul din mijloc
+    names = list(PLANET_DATA.keys())  # ["Kepler-22b", "Kepler-452b", "WASP-96b"]
+
+    for i, name in enumerate(names):
+        data = PLANET_DATA[name]
+        with cols[i]:
             _anchored_modal_card(
                 name=name,
                 img_path=data["image"],
                 body_html=data["body"],
                 key=name.replace(" ", "_"),
-                height=720,  # increase if you want more space for the open panel
+                height=600,
+                img_scale=0.7,             # <— mai mic decât înainte
+                offset_px=18 if i == 1 else 0  # <— coboară puțin cardul din mijloc
             )
-        idx = (idx + 1) % 3
+
 
 
 def show_explorer_view():
@@ -274,7 +275,7 @@ def show_explorer_view():
     else:
         green_header("The Importance of Exoplanets", level=2)
 
-        with st.expander("What are exoplanets? 🪐"):
+        with st.expander("What are exoplanets?"):
             st.write(
                 """
                 An **exoplanet** is any planet that orbits a star outside our solar system. The first confirmed discovery
@@ -283,7 +284,7 @@ def show_explorer_view():
                 """
             )
 
-        with st.expander("Types of Exoplanets 🔭"):
+        with st.expander("Types of Exoplanets"):
             st.markdown(
                 """
                 The thousands of exoplanets discovered so far fall into a few broad categories, many of which are unlike anything in our own solar system:
@@ -294,7 +295,7 @@ def show_explorer_view():
                 """
             )
 
-        with st.expander("How do we find exoplanets? 🛰️"):
+        with st.expander("How do we find exoplanets?"):
             st.write(
                 "Detecting exoplanets is challenging because they are far dimmer than their host stars. Two key methods:"
             )
@@ -305,7 +306,7 @@ def show_explorer_view():
                 """
             )
 
-        with st.expander("The 'Goldilocks' Zone 🎯"):
+        with st.expander("The 'Goldilocks' Zone"):
             st.write(
                 """
                 The **habitable zone**, often called the "Goldilocks Zone," is the orbital region around a star where conditions are "just right"—not too hot and not too cold—for liquid water to exist on a planet's surface.
@@ -314,7 +315,7 @@ def show_explorer_view():
                 """
             )
 
-        with st.expander("So, why are exoplanets important? 🤔"):
+        with st.expander("So, why are exoplanets important?"):
             st.write("Three core reasons this field matters:")
             st.markdown(
                 """

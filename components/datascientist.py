@@ -1,6 +1,8 @@
 # components/datascientist.py
 import streamlit as st
 import math
+import requests
+
 
 # --- Physical constants ---
 G_cgs = 6.67430e-8             # cm^3 g^-1 s^-2
@@ -51,13 +53,13 @@ def _flux_rel_earth(Teff_K: float, Rstar_Rsun: float, a_AU: float) -> float:
     """S/S_earth = (L*/Lsun) / a^2 with L ∝ R^2 T^4."""
     if Teff_K <= 0 or Rstar_Rsun <= 0 or a_AU <= 0:
         return float("nan")
-    L_rel = (Rstar_Rsun**2) * ((Teff_K / T_sun_K) ** 4)
+    L_rel = (Rstar_Rsun*2) * ((Teff_K / T_sun_K) * 4)
     return L_rel / (a_AU ** 2)
 
 def _central_transit_duration_hours(P_days: float, a_AU: float, Rstar_Rsun: float) -> float:
     """
     Approx central transit duration for b≈0, small Rp:
-    T ≈ (P/π) * arcsin(R*/a)  ~ (P/π)*(R*/a) for small angles.
+    T ≈ (P/π) * arcsin(R*/a)  ~ (P/π)(R/a) for small angles.
     Returns hours.
     """
     if P_days <= 0 or a_AU <= 0 or Rstar_Rsun <= 0:
@@ -108,23 +110,38 @@ def show_datascientist_view():
         unsafe_allow_html=True,
     )
 
+    # ---------------- Sidebar: API settings ----------------
+    API_URL = st.sidebar.text_input(
+        "Backend URL (Colab/Cloudflare)",
+        value="https://apps-bent-determine-pollution.trycloudflare.com"
+    ).strip()
+    API_TOKEN = st.sidebar.text_input("API token (optional)", type="password")
+
+    # (opțional) buton de health-check
+    if st.sidebar.button("Ping backend"):
+        try:
+            r = requests.get(f"{API_URL.rstrip('/')}/", timeout=10)
+            st.sidebar.success(f"Ping OK: {r.status_code}")
+        except Exception as e:
+            st.sidebar.error(f"Ping failed: {e}")
+
+    # ---------------- Formularul de intrare ----------------
     with st.form("exo_form", clear_on_submit=False):
-        # Two equal columns
         cols = st.columns(2)
 
         fields = [
-            ("Orbital period (days)",              dict(min_value=0.0, step=0.1,  format="%.4f", key="P_days")),
-            ("Transit epoch (e.g., BJD_TDB)",      dict(step=0.1,                       format="%.5f", key="t0")),
-            ("Transit duration (hours)",           dict(min_value=0.0, step=0.1,  format="%.3f", key="dur_hours")),
-            ("Transit depth (ppm)",                dict(min_value=0.0, step=10.0, format="%.3f", key="depth_val")),
-            ("Planetary radius (Earth radii)",     dict(min_value=0.0, step=0.1,  format="%.3f", key="Rp_Re")),
-            ("Equilibrium temperature (K)",        dict(min_value=0.0, step=10.0, format="%.1f", key="Teq_K")),
+            ("Orbital period (days)",               dict(min_value=0.0, step=0.1,  format="%.4f", key="P_days")),
+            ("Transit epoch (e.g., BJD_TDB)",       dict(step=0.1,                 format="%.5f", key="t0")),
+            ("Transit duration (hours)",            dict(min_value=0.0, step=0.1,  format="%.3f", key="dur_hours")),
+            ("Transit depth (ppm)",                 dict(min_value=0.0, step=10.0, format="%.3f", key="depth_val")),
+            ("Planetary radius (Earth radii)",      dict(min_value=0.0, step=0.1,  format="%.3f", key="Rp_Re")),
+            ("Equilibrium temperature (K)",         dict(min_value=0.0, step=10.0, format="%.1f", key="Teq_K")),
             ("Earth flux",                          dict(min_value=0.0, step=0.1,  format="%.3f", key="S_earth")),
-            ("Stellar effective temperature (K)",  dict(min_value=0.0, step=10.0, format="%.1f", key="Teff_K")),
-            ("Stellar surface gravity log g (cgs)",dict(min_value=0.0, step=0.01, format="%.3f", key="logg")),
-            ("Stellar radius (Solar radii)",       dict(min_value=0.0, step=0.01, format="%.4f", key="Rstar_Rsun")),
-            ("Right ascension (deg, 0–360)",       dict(min_value=0.0, max_value=360.0, step=0.1, format="%.4f", key="RA_deg")),
-            ("Declination (deg, -90–+90)",         dict(min_value=-90.0, max_value=90.0, step=0.1, format="%.4f", key="Dec_deg")),
+            ("Stellar effective temperature (K)",   dict(min_value=0.0, step=10.0, format="%.1f", key="Teff_K")),
+            ("Stellar surface gravity log g (cgs)", dict(min_value=0.0, step=0.01, format="%.3f", key="logg")),
+            ("Stellar radius (Solar radii)",        dict(min_value=0.0, step=0.01, format="%.4f", key="Rstar_Rsun")),
+            ("Right ascension (deg, 0–360)",        dict(min_value=0.0, max_value=360.0, step=0.1, format="%.4f", key="RA_deg")),
+            ("Declination (deg, -90–+90)",          dict(min_value=0.0, max_value=90.0, step=0.1, format="%.4f", key="Dec_deg")),
         ]
 
         for i, (label, kwargs) in enumerate(fields):
@@ -133,14 +150,14 @@ def show_datascientist_view():
 
         submitted = st.form_submit_button("Check parameters")
 
-    # Before submit: just show back button
+    # Before submit: doar back button
     if not submitted:
         st.divider()
         if st.button("← Back to role selection"):
             _go_home()
         return
 
-    # --- Read values ---
+    # ---------------- Citește valorile din state ----------------
     P_days       = st.session_state.get("P_days", 0.0)
     t0           = st.session_state.get("t0", 0.0)
     dur_hours    = st.session_state.get("dur_hours", 0.0)
@@ -154,48 +171,67 @@ def show_datascientist_view():
     RA_deg       = st.session_state.get("RA_deg", 0.0)
     Dec_deg      = st.session_state.get("Dec_deg", 0.0)
 
-    # --- Convert/derive ---
-    depth_frac_input = depth_val / 1e6 if depth_val > 0 else 0.0
-    a_AU          = _a_from_Teq_Teff_Rstar(Teq_K, Teff_K, Rstar_Rsun)
-    Mstar_Msun    = _stellar_mass_from_logg_R(logg, Rstar_Rsun)
-    P_days_kepler = _period_from_kepler(a_AU, Mstar_Msun)
-    depth_frac_expected = _depth_from_radii(Rp_Re, Rstar_Rsun)
-    S_pred        = _flux_rel_earth(Teff_K, Rstar_Rsun, a_AU)
-    dur_pred_hours= _central_transit_duration_hours(P_days, a_AU, Rstar_Rsun)
+    # ---------------- Payload pentru backend ----------------
+    payload = {
+        "period_days": P_days,
+        "t0": t0,
+        "duration_hours": dur_hours,
+        "transit_depth_ppm": depth_val,
+        "radius_earth": Rp_Re,
+        "teq_K": Teq_K,
+        "S_earth": S_earth,
+        "teff_star_K": Teff_K,
+        "logg_cgs": logg,
+        "rstar_rsun": Rstar_Rsun,
+        "ra_deg": RA_deg,
+        "dec_deg": Dec_deg,
+    }
 
-    # --- Minimal checks (only basic > 0) ---
-    messages = []
-    ok = True
-    basics = [
-        ("Orbital period", P_days > 0),
-        ("Transit duration", dur_hours > 0),
-        ("Transit depth", depth_frac_input > 0),
-        ("Planet radius", Rp_Re > 0),
-        ("Equilibrium temperature", Teq_K > 0),
-        ("Earth flux", S_earth >= 0),
-        ("Teff", Teff_K > 0),
-        ("log g", logg > 0),
-        ("Stellar radius", Rstar_Rsun > 0),
-    ]
-    for name, cond in basics:
-        if not cond:
-            ok = False
-            messages.append(("error", f"{name} must be > 0."))
-
-    # --- Results ---
+    # ---------------- Apel API backend ----------------
     st.divider()
-    if ok:
-        st.success("These parameters are **self-consistent** under standard assumptions (basic checks only).")
-    else:
-        st.error("Parameters show **inconsistencies**. See diagnostics below.")
+    if not API_URL:
+        st.error("Setează URL-ul backendului în sidebar.")
+        if st.button("← Back to role selection"):
+            _go_home()
+        return
 
-    for level, msg in messages:
-        if level == "success":
-            st.success(msg)
-        elif level == "warning":
-            st.warning(msg)
-        else:
-            st.error(msg)
+    headers = {"Content-Type": "application/json"}
+    if API_TOKEN:
+        headers["X-API-Key"] = API_TOKEN
+
+    try:
+        with st.spinner("Contacting backend…"):
+            resp = requests.post(f"{API_URL.rstrip('/')}/predict", json=payload, headers=headers, timeout=30)
+        resp.raise_for_status()
+        data = resp.json()
+
+
+
+        # Sumar prietenos dacă există câmpuri cunoscute
+        score = data.get("score", None)
+        if isinstance(score, (int, float)):
+            st.metric("Score", f"{score:.3f}")
+
+        # features = data.get("features") or {}
+        # if features:
+        #     cols_info = st.columns(3)
+        #     with cols_info[0]:
+        #         st.write("*Year (years)*:", features.get("year_years"))
+        #         st.write("*a [AU]*:", features.get("a_AU"))
+        #     with cols_info[1]:
+        #         st.write("*S_rel*:", features.get("S_rel"))
+        #         st.write("*TOA mean*:", features.get("TOA_global_mean"))
+        #     with cols_info[2]:
+        #         st.write("*planet_size*:", features.get("planet_size"))
+        #         st.write("*star_type*:", features.get("star_type"))
+        #
+        # with st.expander("Răspuns JSON complet"):
+        #     st.json(data)
+
+    except requests.exceptions.RequestException as e:
+        st.error(f"Eroare API: {e}")
+        with st.expander("Payload trimis (debug)"):
+            st.json(payload)
 
     st.divider()
     if st.button("← Back to role selection"):
