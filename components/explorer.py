@@ -50,8 +50,8 @@ def _anchored_modal_card(
     body_html: str,
     key: str,
     height: int = 640,
-    img_scale: float = 0.75,   # <— imagine mai mică (75% din lățimea cardului)
-    offset_px: int = 0         # <— offset vertical al cardului (px)
+    img_scale: float = 0.75,
+    offset_px: int = 0
 ):
     """
     Renders a card where clicking the image toggles a glass/blur 'modal-like' panel
@@ -148,13 +148,9 @@ def _anchored_modal_card(
       </script>
     </div>
     """
-    # height controls the iframe that hosts this card; make it tall enough for the panel
     components.html(html_block, height=height, scrolling=False)
 
 
-# ───────────────────────────────────────────────────────────────────────────────
-# Gallery
-# ───────────────────────────────────────────────────────────────────────────────
 def show_interactive_planets():
     """
     Displays an interactive gallery of exoplanets.
@@ -200,7 +196,7 @@ def show_interactive_planets():
                 img_path=data["image"],
                 body_html=data["body"],
                 key=name.replace(" ", "_"),
-                height=720,  # increase if you want more space for the open panel
+                height=720,
             )
         idx = (idx + 1) % 3
 
@@ -216,7 +212,6 @@ def show_explorer_view():
     def reveal_details():
         st.session_state.show_details = True
 
-    # CSS for expanders and hero title
     st.markdown(
         """
         <style>
@@ -270,7 +265,7 @@ def show_explorer_view():
             """
             <div class="title-container">
               <h1 class="big-title">Why are exoplanets important for humanity?</h1>
-              <h4 class="subtitle">Let's discover the worlds beyond our solar system</h4>
+              <h4 class="subtitle">Discover the worlds beyond our solar system</h4>
             </div>
             """,
             unsafe_allow_html=True

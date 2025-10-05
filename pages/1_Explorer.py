@@ -4,7 +4,6 @@ from components.explorer import show_explorer_view
 
 st.set_page_config(page_title="Explorer", page_icon="✨", layout="wide")
 
-# Hide multipage navigation, sidebar, and toggle/toolbar
 st.markdown(
     """
     <style>
