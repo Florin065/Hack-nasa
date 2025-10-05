@@ -1,12 +1,8 @@
-# components/explorer.py
 import streamlit as st
 import base64
 import streamlit.components.v1 as components
 
 
-# ───────────────────────────────────────────────────────────────────────────────
-# Green gradient divider (helper)
-# ───────────────────────────────────────────────────────────────────────────────
 def _inject_green_divider_css():
     if st.session_state.get("_green_divider_css_injected"):
         return
@@ -43,9 +39,6 @@ def green_header(text: str, level: int = 2):
     )
 
 
-# ───────────────────────────────────────────────────────────────────────────────
-# Helpers for the clickable "anchored modal" planet cards
-# ───────────────────────────────────────────────────────────────────────────────
 def _img_b64(path: str) -> str:
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode("utf-8")
@@ -66,9 +59,6 @@ def _anchored_modal_card(name: str, img_path: str, body_html: str, key: str, hei
           position: relative;  /* anchor for the panel */
           border-radius: 14px;
           padding: 10px;
-         
-          
-          
         }}
         .card-{key} img {{
           width: 100%;
@@ -82,26 +72,20 @@ def _anchored_modal_card(name: str, img_path: str, body_html: str, key: str, hei
           margin-top: 8px; text-align: center; color: #cfeede; font-size: 0.9rem;
         }}
 
-        /* Anchored glass/blur panel below the image */
         #panel-{key} {{
-          display: none;                /* toggled by JS */
-          margin-top: 10px;             /* BELOW the image */
+          display: none;
+          margin-top: 10px;
           border-radius: 12px;
-
-          /* translucent + blur (glassmorphism) */
           background: rgba(14, 17, 23, 0.30);
           backdrop-filter: blur(12px) saturate(120%);
-          -webkit-backdrop-filter: blur(12px) saturate(120%);
-
           color: #f5fff7;
           border: 1px solid rgba(255,255,255,0.18);
           box-shadow: 0 16px 40px rgba(0,0,0,0.45);
           padding: 14px 16px 16px 16px;
         }}
 
-        /* Inner scrolling area so long text isn't cut off */
         #panel-content-{key} {{
-          max-height: 50vh;             /* adjust if you want taller/shorter */
+          max-height: 50vh;
           overflow: auto;
           line-height: 1.6;
         }}
@@ -129,7 +113,6 @@ def _anchored_modal_card(name: str, img_path: str, body_html: str, key: str, hei
         <img id="img-{key}" src="data:image/png;base64,{b64}" alt="{name}">
         
 
-        <!-- Anchored panel below the image -->
         <div id="panel-{key}">
           <span class="panel-close-{key}" id="close-{key}" title="Close">✕</span>
           <div class="panel-arrow-{key}"></div>
@@ -197,7 +180,7 @@ def show_interactive_planets():
         }
     }
 
-    green_header("Exoplanets with water detected", level=2)
+    green_header("Featured Exoplanets", level=2)
 
     cols = st.columns(3)
     idx = 0
@@ -213,9 +196,6 @@ def show_interactive_planets():
         idx = (idx + 1) % 3
 
 
-# ───────────────────────────────────────────────────────────────────────────────
-# Explorer page scaffold
-# ───────────────────────────────────────────────────────────────────────────────
 def show_explorer_view():
     """
     Shows a title and a button. When clicked, it reveals the
@@ -281,7 +261,7 @@ def show_explorer_view():
             """
             <div class="title-container">
               <h1 class="big-title">Why are exoplanets important for humanity?</h1>
-              <p class="subtitle">Discover the worlds beyond our solar system</p>
+              <p class="subtitle">Let's discover the worlds beyond our solar system</p>
             </div>
             """,
             unsafe_allow_html=True
@@ -294,7 +274,7 @@ def show_explorer_view():
     else:
         green_header("The Importance of Exoplanets", level=2)
 
-        with st.expander("What are Exoplanets?"):
+        with st.expander("What are exoplanets? 🪐"):
             st.write(
                 """
                 An **exoplanet** is any planet that orbits a star outside our solar system. The first confirmed discovery
@@ -303,18 +283,38 @@ def show_explorer_view():
                 """
             )
 
-        with st.expander("How do we find Exoplanets?"):
+        with st.expander("Types of Exoplanets 🔭"):
+            st.markdown(
+                """
+                The thousands of exoplanets discovered so far fall into a few broad categories, many of which are unlike anything in our own solar system:
+                - **Gas Giants:** Large planets like Jupiter or Saturn. "Hot Jupiters" are a famous sub-class that orbit extremely close to their stars.
+                - **Super-Earths:** Rocky planets larger than Earth but smaller than Neptune. They are one of the most common types of planets discovered.
+                - **Mini-Neptunes:** Worlds smaller than Neptune but larger than Earth, likely with thick hydrogen-helium atmospheres.
+                - **Terrestrial Planets:** Rocky, Earth-sized worlds or smaller. Finding these in the habitable zone is a primary goal of many missions.
+                """
+            )
+
+        with st.expander("How do we find exoplanets? 🛰️"):
             st.write(
                 "Detecting exoplanets is challenging because they are far dimmer than their host stars. Two key methods:"
             )
             st.markdown(
                 """
-                - **Transit Method:** When a planet passes in front of its star, it blocks a tiny fraction of starlight.  
-                - **Radial Velocity:** A planet’s gravity makes its star wobble; we detect the wobble in the star’s spectrum.
+                - **Transit method:** When a planet passes in front of its star, it blocks a tiny fraction of starlight.  
+                - **Radial velocity:** A planet’s gravity makes its star wobble; we detect the wobble in the star’s spectrum.
                 """
             )
 
-        with st.expander("Why are Exoplanets important?"):
+        with st.expander("The 'Goldilocks' Zone 🎯"):
+            st.write(
+                """
+                The **habitable zone**, often called the "Goldilocks Zone," is the orbital region around a star where conditions are "just right"—not too hot and not too cold—for liquid water to exist on a planet's surface.
+
+                While it's a crucial starting point in the search for life, it's not a guarantee. Other factors, like a planet's atmosphere, composition, and its star's activity, also play a huge role in true habitability.
+                """
+            )
+
+        with st.expander("So, why are exoplanets important? 🤔"):
             st.write("Three core reasons this field matters:")
             st.markdown(
                 """
@@ -323,12 +323,20 @@ def show_explorer_view():
                 3. **Innovation:** The search drives advances in telescopes and data science.
                 """
             )
-            st.write("Every exoplanet adds a piece to the cosmic puzzle—and helps us understand our place in the universe.")
+            st.write(
+                "Every exoplanet adds a piece to the cosmic puzzle—and helps us understand our place in the universe.")
 
-        # Interactive gallery (click image to open modal-like panel below)
+        with st.expander("The future of Exoplanet hunting"):
+            st.write(
+                """
+                The search is just getting started. The next generation of telescopes will move from simply detecting planets to characterizing them in detail.
+                - **Nancy Grace Roman Space Telescope (NASA):** Will discover thousands more exoplanets using a wide-field view to conduct a massive galactic survey.
+                - **Extremely Large Telescope (ESO):** A ground-based telescope with a massive 39-meter mirror that will be able to directly image larger exoplanets and analyze their atmospheres.
+                """
+            )
+
         show_interactive_planets()
 
 
-# Optional: run directly for quick testing
 if __name__ == "__main__":
     show_explorer_view()
